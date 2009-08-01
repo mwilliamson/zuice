@@ -8,7 +8,6 @@ from zuice import NoSuchBindingException
 from zuice import inject_by_name
 from zuice import inject_by_type
 from zuice import inject_with
-from zuice import inject
 
 class TestInjectorBinding(unittest.TestCase):
     class Apple(object):
@@ -105,19 +104,20 @@ class TestInjectorBinding(unittest.TestCase):
         bindings = Bindings()
         self.assertRaises(InvalidBindingException, lambda: bindings.bind(22))
     
+    class Donkey(object):
+        def __init__(self, legs):
+            pass
+    
     def test_get_from_type_throws_exception_if_no_such_binding_exists(self):
-        Apple = self.Apple
-        
         injector = Injector(Bindings())
-        self.assertRaises(NoSuchBindingException, lambda: injector.get_from_type(Apple))
+        self.assertRaises(NoSuchBindingException, lambda: injector.get_from_type(self.Donkey))
         
-        apple = Apple()
+        donkey = self.Donkey(4)
         bindings = Bindings()
-        bindings.bind_type(Apple).to_provider(lambda x: apple)
+        bindings.bind_type(self.Donkey).to_provider(lambda x: donkey)
         
         injector = Injector(bindings)
-        self.assertTrue(injector.get_from_type(Apple) is apple)
-        self.assertRaises(NoSuchBindingException, lambda: injector.get_from_type(int))
+        self.assertTrue(injector.get_from_type(self.Donkey) is donkey)
         
     def test_get_from_name_throws_exception_if_no_such_binding_exists(self):
         Apple = self.Apple
@@ -213,21 +213,18 @@ class TestInjector(unittest.TestCase):
         self.assertTrue(basket.banana is banana_to_inject)
     
     class Coconut(object):
-        @inject
         def __init__(self):
             self.x = 10
     
+    class Durian(object):
+        pass
+        
     def test_can_inject_class_with_no_constructor_arguments(self):
         injector = Injector(Bindings())
-        injector.get(self.Coconut)
+        coconut = injector.get(self.Coconut)
+        self.assertEquals(10, coconut.x)
+        injector.get(self.Durian)
     
-    class Durian(object):
-        def __init__(self, x):
-            pass
-    
-    def test_inject_cannot_be_used_with_constructors_that_take_arguments(self):
-        self.assertRaises(TypeError, inject(lambda x: x))
-        
     def test_can_bind_names_to_injectable_types(self):
         apple_to_inject = Apple()
         banana_to_inject = Banana()
@@ -251,7 +248,6 @@ class TestInjector(unittest.TestCase):
     def test_bind_to_type_only_accepts_types(self):
         bindings = Bindings()
         self.assertRaises(TypeError, lambda: bindings.bind("banana").to_type("apple"))
-    
 
     def test_can_bind_to_names(self):
         apple_to_inject = Apple()
@@ -269,6 +265,14 @@ class TestInjector(unittest.TestCase):
     def test_bind_to_name_only_accepts_strings(self):
         bindings = Bindings()
         self.assertRaises(TypeError, lambda: bindings.bind("banana").to_name(Banana))
+    
+    def test_uses_bindings_before_injection(self):
+        bindings = Bindings()
+        basket = self.BasketWith(Apple(), Banana())
+        bindings.bind(self.BasketWith).to_instance(basket)
         
+        injector = Injector(bindings)
+        self.assertTrue(injector.get(self.BasketWith) is basket)
+    
 if __name__ == '__main__':
     unittest.main()

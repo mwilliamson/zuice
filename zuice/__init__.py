@@ -82,10 +82,15 @@ class Injector(object):
     
     def get_from_type(self, type_to_get):
         if not isinstance(type_to_get, type):
-            raise TypeError
+            raise TypeError, str(type_to_get) + " is not a type"
+        if type_to_get in self.bindings:
+            return self._get_from_bindings(type_to_get)
         if hasattr(type_to_get.__init__, 'zuice'):
             return self._inject(type_to_get)
-        return self._get_from_bindings(type_to_get)
+        try:
+            return type_to_get()
+        except TypeError:
+            raise NoSuchBindingException(type_to_get)
         
     def get_from_name(self, name):
         if not isinstance(name, basestring):
@@ -134,13 +139,3 @@ def inject_with(*keys):
         constructor.zuice = zuice_constructor
         return constructor
     return a
-
-class ZuiceConstructorNoArgs(object):
-    def build_args(self, type, injector):
-        return []
-
-def inject(constructor):
-    if len(inspect.getargspec(constructor)[0]) > 1:
-        raise TypeError
-    constructor.zuice = ZuiceConstructorNoArgs()
-    return constructor
