@@ -24,6 +24,9 @@ class Bindings(object):
         copy = Bindings()
         copy.bindings = self.bindings.copy()
         return copy
+        
+    def __contains__(self, key):
+        return key in self.bindings
 
 class InvalidBindingException(Exception):
     pass
@@ -64,7 +67,7 @@ class Injector(object):
         return self._get_from_bindings(name)
         
     def _get_from_bindings(self, key):
-        if key not in self.bindings.bindings:
+        if key not in self.bindings:
             raise NoSuchBindingException()
         return self.bindings.bindings[key]()
 

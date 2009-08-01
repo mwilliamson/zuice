@@ -9,7 +9,16 @@ from zuice import NoSuchBindingException
 class TestInjector(unittest.TestCase):
     class Apple(object):
         pass
+    
+    def test_key_in_bindings_if_key_has_been_bound(self):
+        Apple = TestInjector.Apple
+        apple = Apple()
+        bindings = Bindings()
+        bindings.bind("apple").to_instance(apple)
         
+        self.assertTrue("apple" in bindings)
+        self.assertTrue("banana" not in bindings)
+    
     def test_bind_type_to_instance(self):
         Apple = TestInjector.Apple
         apple = Apple()
