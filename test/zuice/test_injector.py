@@ -7,6 +7,7 @@ from zuice import InvalidBindingException
 from zuice import NoSuchBindingException
 from zuice import inject_by_name
 from zuice import inject_by_type
+from zuice import inject_with
 
 class TestInjectorBinding(unittest.TestCase):
     class Apple(object):
@@ -177,6 +178,24 @@ class TestInjector(unittest.TestCase):
         
         injector = Injector(bindings)
         basket = injector.get(self.BasketByType)
+        self.assertTrue(basket.apple is apple_to_inject)
+        self.assertTrue(basket.banana is banana_to_inject)
+        
+    class BasketWith(object):
+        @inject_with(Apple, "banana")
+        def __init__(self, apple, banana):
+            self.apple = apple
+            self.banana = banana
+    
+    def test_can_inject_constructor_arguments_by_type(self):
+        apple_to_inject = Apple()
+        banana_to_inject = Banana()
+        bindings = Bindings()
+        bindings.bind(Apple).to_instance(apple_to_inject)
+        bindings.bind("banana").to_instance(banana_to_inject)
+        
+        injector = Injector(bindings)
+        basket = injector.get(self.BasketWith)
         self.assertTrue(basket.apple is apple_to_inject)
         self.assertTrue(basket.banana is banana_to_inject)
         

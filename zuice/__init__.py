@@ -99,16 +99,19 @@ def inject_by_name(constructor):
     constructor.zuice = ZuiceConstructorByName()
     return constructor
 
-class ZuiceConstructorByType(object):
+class ZuiceConstructorByKey(object):
     def __init__(self, types):
         self.types = types
     
     def build_args(self, type, injector):
-        return map(lambda type: injector.get_from_type(type), self.types)
+        return map(lambda type: injector.get(type), self.types)
 
 def inject_by_type(*types):
+    return inject_with(*types)
+
+def inject_with(*keys):
     def a(constructor):
-        zuice_constructor = ZuiceConstructorByType(types)
+        zuice_constructor = ZuiceConstructorByKey(keys)
         constructor.zuice = zuice_constructor
         return constructor
     return a
