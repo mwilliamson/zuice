@@ -8,6 +8,7 @@ from zuice import NoSuchBindingException
 from zuice import inject_by_name
 from zuice import inject_by_type
 from zuice import inject_with
+from zuice import inject
 
 class TestInjectorBinding(unittest.TestCase):
     class Apple(object):
@@ -53,7 +54,7 @@ class TestInjectorBinding(unittest.TestCase):
         Apple = self.Apple
         apple = Apple()
         bindings = Bindings()
-        bindings.bind_type(Apple).to_provider(lambda: apple)
+        bindings.bind_type(Apple).to_provider(lambda x: apple)
         
         injector = Injector(bindings)
         self.assertTrue(injector.get_from_type(Apple) is apple)
@@ -69,6 +70,18 @@ class TestInjectorBinding(unittest.TestCase):
         injector = Injector(bindings)
         self.assertTrue(injector.get(Apple) is apple_by_type)
         self.assertTrue(injector.get("apple") is apple_by_name)
+        
+    def test_get_from_type_raises_exception_if_key_is_not_type(self):
+        bindings = Bindings()
+        bindings.bind("apple").to_instance(self.Apple())
+        injector = Injector(bindings)
+        self.assertRaises(TypeError, lambda: injector.get_from_type("apple"))
+        
+    def test_get_from_name_raises_exception_if_key_is_not_of_correct_type(self):
+        bindings = Bindings()
+        bindings.bind(self.Apple).to_instance(self.Apple())
+        injector = Injector(bindings)
+        self.assertRaises(TypeError, lambda: injector.get_from_name(self.Apple))
         
     def test_get_raises_exception_if_key_is_not_of_correct_type(self):
         injector = Injector(Bindings())
@@ -100,7 +113,7 @@ class TestInjectorBinding(unittest.TestCase):
         
         apple = Apple()
         bindings = Bindings()
-        bindings.bind_type(Apple).to_provider(lambda: apple)
+        bindings.bind_type(Apple).to_provider(lambda x: apple)
         
         injector = Injector(bindings)
         self.assertTrue(injector.get_from_type(Apple) is apple)
@@ -114,7 +127,7 @@ class TestInjectorBinding(unittest.TestCase):
         
         apple = Apple()
         bindings = Bindings()
-        bindings.bind_name("apple").to_provider(lambda: apple)
+        bindings.bind_name("apple").to_provider(lambda x: apple)
         
         injector = Injector(bindings)
         self.assertTrue(injector.get_from_name("apple") is apple)
@@ -124,7 +137,7 @@ class TestInjectorBinding(unittest.TestCase):
         Apple = self.Apple
         apple = Apple()
         bindings = Bindings()
-        bindings.bind_type(Apple).to_provider(lambda: apple)
+        bindings.bind_type(Apple).to_provider(lambda x: apple)
         
         injector = Injector(bindings)
         bindings.bind_type(Apple).to_provider(lambda: None)
@@ -198,6 +211,64 @@ class TestInjector(unittest.TestCase):
         basket = injector.get(self.BasketWith)
         self.assertTrue(basket.apple is apple_to_inject)
         self.assertTrue(basket.banana is banana_to_inject)
+    
+    class Coconut(object):
+        @inject
+        def __init__(self):
+            self.x = 10
+    
+    def test_can_inject_class_with_no_constructor_arguments(self):
+        injector = Injector(Bindings())
+        injector.get(self.Coconut)
+    
+    class Durian(object):
+        def __init__(self, x):
+            pass
+    
+    def test_inject_cannot_be_used_with_constructors_that_take_arguments(self):
+        self.assertRaises(TypeError, inject(lambda x: x))
+        
+    def test_can_bind_names_to_injectable_types(self):
+        apple_to_inject = Apple()
+        banana_to_inject = Banana()
+        bindings = Bindings()
+        bindings.bind(Apple).to_instance(apple_to_inject)
+        bindings.bind(Banana).to_instance(banana_to_inject)
+        bindings.bind("banana").to_type(Banana)
+        bindings.bind("basket").to_type(self.BasketWith)
+        
+        injector = Injector(bindings)
+        self.assertTrue(injector.get("banana") is banana_to_inject)
+        
+        basket = injector.get("basket")
+        self.assertTrue(basket.apple is apple_to_inject)
+        self.assertTrue(basket.banana is banana_to_inject)
+    
+    def test_cannot_bind_type_to_itself(self):
+        bindings = Bindings()
+        self.assertRaises(TypeError, lambda: bindings.bind(Apple).to_type(Apple))
+    
+    def test_bind_to_type_only_accepts_types(self):
+        bindings = Bindings()
+        self.assertRaises(TypeError, lambda: bindings.bind("banana").to_type("apple"))
+    
+
+    def test_can_bind_to_names(self):
+        apple_to_inject = Apple()
+        bindings = Bindings()
+        bindings.bind("apple").to_instance(apple_to_inject)
+        bindings.bind("another_apple").to_name("apple")
+        
+        injector = Injector(bindings)
+        self.assertTrue(injector.get("another_apple") is apple_to_inject)
+    
+    def test_cannot_bind_name_to_itself(self):
+        bindings = Bindings()
+        self.assertRaises(TypeError, lambda: bindings.bind("apple").to_name("apple"))
+    
+    def test_bind_to_name_only_accepts_strings(self):
+        bindings = Bindings()
+        self.assertRaises(TypeError, lambda: bindings.bind("banana").to_name(Banana))
         
 if __name__ == '__main__':
     unittest.main()
