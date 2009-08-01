@@ -63,10 +63,10 @@ class Injector(object):
             return self.get_from_name(key)
         if isinstance(key, type):
             return self.get_from_type(key)
-        raise NoSuchBindingException
+        raise NoSuchBindingException(key)
     
     def get_from_type(self, type):
-        if hasattr(type.__init__, 'zuice') and type.__init__.zuice.injectable:
+        if hasattr(type.__init__, 'zuice'):
             return self._inject(type)
         return self._get_from_bindings(type)
         
@@ -75,22 +75,40 @@ class Injector(object):
         
     def _get_from_bindings(self, key):
         if key not in self.bindings:
-            raise NoSuchBindingException()
+            raise NoSuchBindingException(key)
         return self.bindings[key]()
         
     def _inject(self, type):
-        arg_names = inspect.getargspec(type.__init__)[0]
-        arg_names = arg_names[1:]
-        args = map(lambda arg_name: self.get_from_name(arg_name), arg_names)
+        args = type.__init__.zuice.build_args(type, self)
         return type(*args)
 
 class NoSuchBindingException(Exception):
-    pass
+    def __init__(self, key):
+        self.key = key
+        
+    def __str__(self):
+        return str(self.key)
 
+class ZuiceConstructorByName(object):
+    def build_args(self, type, injector):
+        arg_names = inspect.getargspec(type.__init__)[0]
+        arg_names = arg_names[1:]
+        return map(lambda arg_name: injector.get_from_name(arg_name), arg_names)
+        
 def inject_by_name(constructor):
-    class ZuiceConstructor(object):
-        def __init__(self):
-            self.injectable = True
-            
-    constructor.zuice = ZuiceConstructor()
+    constructor.zuice = ZuiceConstructorByName()
     return constructor
+
+class ZuiceConstructorByType(object):
+    def __init__(self, types):
+        self.types = types
+    
+    def build_args(self, type, injector):
+        return map(lambda type: injector.get_from_type(type), self.types)
+
+def inject_by_type(*types):
+    def a(constructor):
+        zuice_constructor = ZuiceConstructorByType(types)
+        constructor.zuice = zuice_constructor
+        return constructor
+    return a
