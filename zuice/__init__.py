@@ -142,9 +142,6 @@ class _ZuiceConstructorByKey(object):
     def build_args(self, injector):
         return map(lambda type: injector.get(type), self.types)
 
-def inject_by_type(*types):
-    return inject_with(*types)
-
 def inject_with(*keys):
     def a(constructor):
         zuice_constructor = _ZuiceConstructorByKey(keys)
