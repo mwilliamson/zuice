@@ -274,5 +274,27 @@ class TestInjector(unittest.TestCase):
         injector = Injector(bindings)
         self.assertTrue(injector.get(self.BasketWith) is basket)
     
+    class Foo(object):
+        @inject_by_name
+        def bar(self, apple, banana):
+            self.apple = apple
+            self.banana = banana
+            return banana
+    
+    def test_can_inject_methods(self):
+        bindings = Bindings()
+        apple = Apple()
+        banana = Banana()
+        bindings.bind("apple").to_instance(apple)
+        bindings.bind("banana").to_instance(banana)
+        foo = self.Foo()
+        
+        injector = Injector(bindings)
+        returned_value = injector.call(foo.bar)
+        
+        self.assertTrue(returned_value is banana)
+        self.assertTrue(foo.apple is apple)
+        self.assertTrue(foo.banana is banana)
+    
 if __name__ == '__main__':
     unittest.main()
