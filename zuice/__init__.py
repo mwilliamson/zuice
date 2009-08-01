@@ -1,6 +1,6 @@
 class Bindings(object):
     def __init__(self):
-        self.bindings = {}
+        self._bindings = {}
     
     def bind(self, key):
         if isinstance(key, basestring):
@@ -18,15 +18,18 @@ class Bindings(object):
     def _type_safe_bind(self, type, key):
         if not isinstance(key, type):
             raise InvalidBindingException()
-        return Binder(key, self.bindings)
+        return Binder(key, self._bindings)
     
     def copy(self):
         copy = Bindings()
-        copy.bindings = self.bindings.copy()
+        copy._bindings = self._bindings.copy()
         return copy
         
     def __contains__(self, key):
-        return key in self.bindings
+        return key in self._bindings
+        
+    def __getitem__(self, key):
+        return self._bindings[key]
 
 class InvalidBindingException(Exception):
     pass
@@ -69,7 +72,7 @@ class Injector(object):
     def _get_from_bindings(self, key):
         if key not in self.bindings:
             raise NoSuchBindingException()
-        return self.bindings.bindings[key]()
+        return self.bindings[key]()
 
 class NoSuchBindingException(Exception):
     pass
