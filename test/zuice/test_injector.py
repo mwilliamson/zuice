@@ -280,6 +280,12 @@ class TestInjector(unittest.TestCase):
             self.apple = apple
             self.banana = banana
             return banana
+            
+        def baz(self, apple, banana):
+            pass
+            
+        def no_args(self):
+            return 20
     
     def test_can_inject_methods(self):
         bindings = Bindings()
@@ -295,6 +301,22 @@ class TestInjector(unittest.TestCase):
         self.assertTrue(returned_value is banana)
         self.assertTrue(foo.apple is apple)
         self.assertTrue(foo.banana is banana)
+    
+    def test_must_use_annotation_to_allow_method_injection(self):
+        bindings = Bindings()
+        apple = Apple()
+        banana = Banana()
+        bindings.bind("apple").to_instance(apple)
+        bindings.bind("banana").to_instance(banana)
+        foo = self.Foo()
+        
+        injector = Injector(bindings)
+        self.assertRaises(NoSuchBindingException, lambda: injector.call(foo.baz))
+    
+    def test_can_call_methods_with_no_arguments(self):
+        injector = Injector(Bindings())
+        foo = self.Foo()
+        self.assertEquals(20, injector.call(foo.no_args))
     
 if __name__ == '__main__':
     unittest.main()

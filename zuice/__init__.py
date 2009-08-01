@@ -101,6 +101,10 @@ class Injector(object):
         if hasattr(method, 'zuice'):
             args = method.zuice.build_args(self)
             return method(*args)
+        try:
+            return method()
+        except TypeError:
+            raise NoSuchBindingException(method)
     
     def _get_from_bindings(self, key):
         if key not in self.bindings:
