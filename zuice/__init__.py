@@ -113,17 +113,17 @@ class NoSuchBindingException(Exception):
     def __str__(self):
         return str(self.key)
 
-class ZuiceConstructorByName(object):
+class _ZuiceConstructorByName(object):
     def build_args(self, type, injector):
         arg_names = inspect.getargspec(type.__init__)[0]
         arg_names = arg_names[1:]
         return map(lambda arg_name: injector.get_from_name(arg_name), arg_names)
         
 def inject_by_name(constructor):
-    constructor.zuice = ZuiceConstructorByName()
+    constructor.zuice = _ZuiceConstructorByName()
     return constructor
 
-class ZuiceConstructorByKey(object):
+class _ZuiceConstructorByKey(object):
     def __init__(self, types):
         self.types = types
     
@@ -135,7 +135,7 @@ def inject_by_type(*types):
 
 def inject_with(*keys):
     def a(constructor):
-        zuice_constructor = ZuiceConstructorByKey(keys)
+        zuice_constructor = _ZuiceConstructorByKey(keys)
         constructor.zuice = zuice_constructor
         return constructor
     return a
