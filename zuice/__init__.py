@@ -1,3 +1,5 @@
+import inspect
+
 class Bindings(object):
     def __init__(self):
         self._bindings = {}
@@ -64,6 +66,8 @@ class Injector(object):
         raise NoSuchBindingException
     
     def get_from_type(self, type):
+        if hasattr(type.__init__, 'zuice') and type.__init__.zuice.injectable:
+            return self._inject(type)
         return self._get_from_bindings(type)
         
     def get_from_name(self, name):
@@ -73,6 +77,20 @@ class Injector(object):
         if key not in self.bindings:
             raise NoSuchBindingException()
         return self.bindings[key]()
+        
+    def _inject(self, type):
+        arg_names = inspect.getargspec(type.__init__)[0]
+        arg_names = arg_names[1:]
+        args = map(lambda arg_name: self.get_from_name(arg_name), arg_names)
+        return type(*args)
 
 class NoSuchBindingException(Exception):
     pass
+
+def inject_by_name(constructor):
+    class ZuiceConstructor(object):
+        def __init__(self):
+            self.injectable = True
+            
+    constructor.zuice = ZuiceConstructor()
+    return constructor
