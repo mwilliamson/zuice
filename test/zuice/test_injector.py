@@ -283,13 +283,13 @@ class TestInjector(unittest.TestCase):
         apple = Apple()
         banana = Banana()
         bindings.bind("apple").to_instance(apple)
-        bindings.bind("banana").to_instance(banana)
+        bindings.bind("another_banana").to_instance(banana)
         
         injector = Injector(bindings)
         injected = injector.get(DefaultArguments)
         self.assertTrue(injected.apple is apple)
-        self.assertTrue(injected.banana is banana)
-        self.assertTrue(injected.another_banana is default_banana)
+        self.assertTrue(injected.banana is default_banana)
+        self.assertTrue(injected.another_banana is banana)
         
 if __name__ == '__main__':
     unittest.main()
