@@ -269,5 +269,27 @@ class TestInjector(unittest.TestCase):
         foo = self.Foo()
         self.assertEquals(20, injector.call(foo.no_args))
     
+    def test_inject_by_name_uses_default_arguments_if_no_bindings_can_be_found(self):
+        default_banana = Banana()
+        
+        class DefaultArguments(object):
+            @inject_by_name
+            def __init__(self, apple, banana=default_banana, another_banana=default_banana):
+                self.apple = apple
+                self.banana = banana
+                self.another_banana = another_banana
+                
+        bindings = Bindings()
+        apple = Apple()
+        banana = Banana()
+        bindings.bind("apple").to_instance(apple)
+        bindings.bind("banana").to_instance(banana)
+        
+        injector = Injector(bindings)
+        injected = injector.get(DefaultArguments)
+        self.assertTrue(injected.apple is apple)
+        self.assertTrue(injected.banana is banana)
+        self.assertTrue(injected.another_banana is default_banana)
+        
 if __name__ == '__main__':
     unittest.main()

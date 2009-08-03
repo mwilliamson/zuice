@@ -1,6 +1,7 @@
 import inspect
 
 from zuice.bindings import *
+import zuice.inspect
 
 class Injector(object):
     def __init__(self, bindings):
@@ -60,9 +61,14 @@ class _ZuiceConstructorByName(object):
         self._method = method
     
     def build_args(self, injector):
-        arg_names = inspect.getargspec(self._method)[0]
-        arg_names = arg_names[1:]
-        return map(lambda arg_name: injector.get_from_name(arg_name), arg_names)
+        args_spec = zuice.inspect.get_method_args_spec(self._method)
+        def build_arg(arg):
+            if arg.name in injector.bindings:
+                return injector.get_from_name(arg.name)
+            if arg.has_default:
+                return arg.default
+            raise NoSuchBindingException(arg.name)
+        return map(build_arg, args_spec)
         
 def inject_by_name(constructor):
     constructor.zuice = _ZuiceConstructorByName(constructor)
