@@ -12,15 +12,6 @@ class TestInjectorBinding(unittest.TestCase):
     class Apple(object):
         pass
     
-    def test_key_in_bindings_if_key_has_been_bound(self):
-        Apple = self.Apple
-        apple = Apple()
-        bindings = Bindings()
-        bindings.bind("apple").to_instance(apple)
-        
-        self.assertTrue("apple" in bindings)
-        self.assertTrue("banana" not in bindings)
-    
     def test_bind_type_to_instance(self):
         Apple = self.Apple
         apple = Apple()
@@ -29,15 +20,6 @@ class TestInjectorBinding(unittest.TestCase):
         
         injector = Injector(bindings)
         self.assertTrue(injector.get_from_type(Apple) is apple)
-    
-    def test_bind_type_raises_exception_if_key_is_not_a_type(self):
-        bindings = Bindings()
-        self.assertRaises(InvalidBindingException, lambda: bindings.bind_type("apple"))
-    
-    def test_bind_name_raises_exception_if_key_is_not_a_string(self):
-        Apple = self.Apple
-        bindings = Bindings()
-        self.assertRaises(InvalidBindingException, lambda: bindings.bind_name(Apple))
     
     def test_bind_name_to_instance(self):
         Apple = self.Apple
@@ -99,10 +81,6 @@ class TestInjectorBinding(unittest.TestCase):
         self.assertTrue(injector.get("apple") is apple_by_name)
         self.assertTrue(injector.get_from_name("apple") is apple_by_name)
     
-    def test_bind_raises_exception_if_using_the_wrong_type_to_bind(self):
-        bindings = Bindings()
-        self.assertRaises(InvalidBindingException, lambda: bindings.bind(22))
-    
     class Donkey(object):
         def __init__(self, legs):
             pass
@@ -141,21 +119,13 @@ class TestInjectorBinding(unittest.TestCase):
         injector = Injector(bindings)
         bindings.bind_type(Apple).to_provider(lambda: None)
         self.assertTrue(injector.get_from_type(Apple) is apple)
-        
-    def test_cannot_bind_using_the_same_binder_more_than_once(self):
-        Apple = self.Apple
-        apple = Apple()
-        bindings = Bindings()
-        binder = bindings.bind_type(Apple)
-        binder.to_provider(lambda: apple)
-        self.assertRaises(AlreadyBoundException, lambda: binder.to_provider(lambda: apple))
 
 class Apple(object):
     pass
     
 class Banana(object):
     pass
-        
+    
 class TestInjector(unittest.TestCase):
     class BasketByName(object):
         @inject_by_name
