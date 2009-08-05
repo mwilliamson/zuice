@@ -1,6 +1,3 @@
-import inspect
-
-from zuice.bindings import *
 import zuice.inspect
 
 class Injector(object):
