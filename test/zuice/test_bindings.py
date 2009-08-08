@@ -1,8 +1,8 @@
 import unittest
 
-from zuice import AlreadyBoundException
-from zuice import Bindings
-from zuice import InvalidBindingException
+from zuice.bindings import AlreadyBoundException
+from zuice.bindings import Bindings
+from zuice.bindings import InvalidBindingException
 from zuice import NoSuchBindingException
 
 class Apple(object):
