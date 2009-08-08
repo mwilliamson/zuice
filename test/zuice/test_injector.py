@@ -288,6 +288,3 @@ class TestInjector(unittest.TestCase):
         self.assertTrue(injected.apple is apple)
         self.assertTrue(injected.banana is default_banana)
         self.assertTrue(injected.another_banana is banana)
-        
-if __name__ == '__main__':
-    unittest.main()

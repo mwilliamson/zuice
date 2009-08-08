@@ -35,8 +35,3 @@ class TestBindings(unittest.TestCase):
         binder.to_provider(lambda: apple)
         self.assertRaises(AlreadyBoundException, lambda: binder.to_provider(lambda: apple))
     
-
-if __name__ == '__main__':
-    unittest.main()
-
-    

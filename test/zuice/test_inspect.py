@@ -30,6 +30,3 @@ class TestInjectorBinding(unittest.TestCase):
     
     def test_get_method_args_spec_with_no_default_arguments(self):
         method_spec = zuice.inspect.get_method_args_spec(SampleObject.bar)
-
-if __name__ == '__main__':
-    unittest.main()
