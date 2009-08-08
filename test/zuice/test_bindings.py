@@ -33,4 +33,10 @@ class TestBindings(unittest.TestCase):
         binder = bindings.bind_type(Apple)
         binder.to_provider(lambda: apple)
         self.assertRaises(AlreadyBoundException, lambda: binder.to_provider(lambda: apple))
-    
+
+    def test_cannot_bind_the_same_name_or_type_more_than_once(self):
+        apple = Apple()
+        bindings = Bindings()
+        bindings.bind('apple').to_instance(apple)
+        self.assertRaises(AlreadyBoundException, lambda: bindings.bind('apple'))
+        self.assertRaises(AlreadyBoundException, lambda: bindings.bind_name('apple'))

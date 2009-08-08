@@ -18,6 +18,8 @@ class Bindings(object):
     def _type_safe_bind(self, type, key):
         if not isinstance(key, type):
             raise TypeError("key must be of type %s" % type)
+        if key in self:
+            raise AlreadyBoundException("Cannot rebind key")
         return Binder(key, self._bindings)
     
     def copy(self):

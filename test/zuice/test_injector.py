@@ -109,14 +109,10 @@ class TestInjectorBinding(unittest.TestCase):
         self.assertRaises(NoSuchBindingException, lambda: injector.get_from_name("banana"))
     
     def test_changing_bindings_after_creating_injector_does_not_change_injector(self):
-        Apple = self.Apple
-        apple = Apple()
         bindings = Bindings()
-        bindings.bind_type(Apple).to_provider(lambda x: apple)
-        
         injector = Injector(bindings)
-        bindings.bind_type(Apple).to_provider(lambda: None)
-        self.assertTrue(injector.get_from_type(Apple) is apple)
+        bindings.bind("apple").to_instance(Apple())
+        self.assertRaises(NoSuchBindingException, lambda: injector.get_from_name("apple"))
 
 class Apple(object):
     pass
