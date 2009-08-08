@@ -2,12 +2,13 @@ from zuice.original_django import url
 
 from zuice import Injector
 
-def controller_view_builder(bindings):
+def _controller_view_builder(bindings):
     def controller_view(request, controller_class, **kwargs):
         controller_injector = Injector(bindings)
         controller = controller_injector.get_from_type(controller_class)
 
         bindings_for_response = bindings.copy()
+        bindings_for_response.bind('request').to_instance(request)
         for item in kwargs.iteritems():
             bindings_for_response.bind_name(item[0]).to_instance(item[1])
         
@@ -22,7 +23,7 @@ def url_controller_builder(bindings):
         if kwargs is None:
             kwargs = {}
         kwargs['controller_class'] = controller_class
-        return url(regex, controller_view_builder(bindings), kwargs, name=name)
+        return url(regex, _controller_view_builder(bindings), kwargs, name=name)
         
     return url_controller
     
