@@ -3,7 +3,6 @@ import unittest
 from zuice.bindings import AlreadyBoundException
 from zuice.bindings import Bindings
 from zuice.bindings import InvalidBindingException
-from zuice import NoSuchBindingException
 
 class Apple(object):
     pass

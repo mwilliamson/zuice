@@ -1,9 +1,7 @@
 import unittest
 
-from zuice.bindings import AlreadyBoundException
 from zuice.bindings import Bindings
 from zuice import Injector
-from zuice.bindings import InvalidBindingException
 from zuice import NoSuchBindingException
 from zuice import inject_by_name
 from zuice import inject_with
