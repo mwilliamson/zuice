@@ -2,7 +2,7 @@ import zuice.inspect
 
 class Injector(object):
     def __init__(self, bindings):
-        self.bindings = bindings.copy()
+        self._bindings = bindings.copy()
     
     def get(self, key):
         if isinstance(key, basestring):
@@ -14,7 +14,7 @@ class Injector(object):
     def get_from_type(self, type_to_get):
         if not isinstance(type_to_get, type):
             raise TypeError, str(type_to_get) + " is not a type"
-        if type_to_get in self.bindings:
+        if type_to_get in self._bindings:
             return self._get_from_bindings(type_to_get)
         if hasattr(type_to_get.__init__, 'zuice'):
             return self._inject(type_to_get)
@@ -38,9 +38,9 @@ class Injector(object):
             raise NoSuchBindingException(method)
     
     def _get_from_bindings(self, key):
-        if key not in self.bindings:
+        if key not in self._bindings:
             raise NoSuchBindingException(key)
-        return self.bindings[key](self)
+        return self._bindings[key](self)
         
     def _inject(self, type):
         args = type.__init__.zuice.build_args(self)
@@ -60,7 +60,7 @@ class _ZuiceConstructorByName(object):
     def build_args(self, injector):
         args_spec = zuice.inspect.get_method_args_spec(self._method)
         def build_arg(arg):
-            if arg.name in injector.bindings:
+            if arg.name in injector._bindings:
                 return injector.get_from_name(arg.name)
             if arg.has_default:
                 return arg.default
