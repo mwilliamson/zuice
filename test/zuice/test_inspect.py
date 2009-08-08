@@ -9,7 +9,7 @@ class SampleObject(object):
     def bar(self, first, second):
         pass
 
-class TestInjectorBinding(unittest.TestCase):
+class TestInspect(unittest.TestCase):
     def test_names_of_methods_are_retrieved(self):
         method_spec = zuice.inspect.get_method_args_spec(SampleObject.foo)
         self.assertEquals('first', method_spec[0].name)
