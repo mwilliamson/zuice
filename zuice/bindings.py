@@ -7,7 +7,7 @@ class Bindings(object):
             return self.bind_name(key)
         if isinstance(key, type):
             return self.bind_type(key)
-        raise InvalidBindingException
+        raise TypeError("key must be of type basestring or type")
     
     def bind_type(self, type_to_bind):
         return self._type_safe_bind(type, type_to_bind)
@@ -17,7 +17,7 @@ class Bindings(object):
     
     def _type_safe_bind(self, type, key):
         if not isinstance(key, type):
-            raise InvalidBindingException()
+            raise TypeError("key must be of type %s" % type)
         return Binder(key, self._bindings)
     
     def copy(self):
@@ -30,9 +30,6 @@ class Bindings(object):
         
     def __getitem__(self, key):
         return self._bindings[key]
-
-class InvalidBindingException(Exception):
-    pass
 
 class Binder(object):
     def __init__(self, key, bindings):
