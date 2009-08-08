@@ -1,4 +1,4 @@
-from zuice.original_inspect import original_inspect as inspect
+inspect = __import__('inspect', {})
 
 class Argument(object):
     def __init__(self, name, has_default, default):

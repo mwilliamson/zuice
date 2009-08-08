@@ -1,4 +1,4 @@
-from zuice.original_django import url
+django = __import__("django.conf.urls.defaults", {})
 
 from zuice import Injector
 
@@ -23,7 +23,7 @@ def url_controller_builder(bindings):
         if kwargs is None:
             kwargs = {}
         kwargs['controller_class'] = controller_class
-        return url(regex, _controller_view_builder(bindings), kwargs, name=name)
+        return django.conf.urls.defaults.url(regex, _controller_view_builder(bindings), kwargs, name=name)
         
     return url_controller
     

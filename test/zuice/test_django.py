@@ -13,7 +13,7 @@ class Url(object):
         self.kwargs = kwargs
         self.name = name
 
-zuice.django.url = lambda regex, view, kwargs, name: Url(regex, view, kwargs, name)
+zuice.django.django.conf.urls.defaults.url = lambda regex, view, kwargs, name: Url(regex, view, kwargs, name)
 
 class Response(object):
     def __init__(self, response):
