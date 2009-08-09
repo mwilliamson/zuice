@@ -6,7 +6,7 @@ class Argument(object):
         self.has_default = has_default
         self.default = default
         
-def get_method_args_spec(function):
+def get_args_spec(function):
     arg_specs = inspect.getargspec(function)
     arg_names = arg_specs[0][1:]
     default_args = arg_specs[3] or []

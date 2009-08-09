@@ -59,7 +59,7 @@ class _ZuiceConstructorByName(object):
         self._method = method
     
     def build_args(self, injector):
-        args_spec = zuice.inspect.get_method_args_spec(self._method)
+        args_spec = zuice.inspect.get_args_spec(self._method)
         def build_arg(arg):
             if arg.name in injector._bindings:
                 return injector.get_from_name(arg.name)
@@ -85,7 +85,7 @@ class _ZuiceConstructorByNamedKey(object):
         self._keys = keys
         
     def build_args(self, injector):
-        args_spec = zuice.inspect.get_method_args_spec(self._method)
+        args_spec = zuice.inspect.get_args_spec(self._method)
         def build_arg(arg):
             if arg.name in self._keys:
                 return injector.get(self._keys[arg.name])
