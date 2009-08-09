@@ -1,7 +1,7 @@
 .PHONY: test
 
 test:
-	nosetests test --with-isolation --detailed-errors
+	nosetests test --detailed-errors
 
 checks:
 	pyflakes .

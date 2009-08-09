@@ -10,6 +10,10 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+   
+   quick_start
+   zuice
+   bindings
 
 Indices and tables
 ==================

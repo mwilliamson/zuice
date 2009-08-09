@@ -324,3 +324,7 @@ class TestInjector(unittest.TestCase):
         self.assertTrue(injected.apple is apple)
         self.assertTrue(injected.banana is default_banana)
         self.assertTrue(injected.another_banana is banana)
+
+    def test_injector_name_is_always_bound_to_injector(self):
+        injector = Injector(Bindings())
+        self.assertTrue(injector.get('injector') is injector)
