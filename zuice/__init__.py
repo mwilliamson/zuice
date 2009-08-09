@@ -89,7 +89,7 @@ class _ZuiceConstructorByNamedKey(object):
                 return injector.get(self._keys[arg.name])
             if arg.has_default:
                 return arg.default
-            raise NoSuchBindingException(arg.name)
+            return injector.get(arg.name)
         return map(build_arg, args_spec)
 
 def inject_with(*keys, **named_keys):

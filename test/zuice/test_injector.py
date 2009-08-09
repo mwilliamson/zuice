@@ -179,6 +179,26 @@ class TestInjector(unittest.TestCase):
         self.assertTrue(basket.another_apple is default_apple)
         self.assertTrue(basket.banana is banana_to_inject)
     
+    class BasketWithUnspecified(object):
+        @inject_with(apple=Apple)
+        def __init__(self, banana, another_apple=default_apple, apple=default_apple):
+            self.apple = apple
+            self.another_apple = another_apple
+            self.banana = banana
+    
+    def test_inject_with_uses_argument_name_as_last_resort(self):
+        apple_to_inject = Apple()
+        banana_to_inject = Banana()
+        bindings = Bindings()
+        bindings.bind(Apple).to_instance(apple_to_inject)
+        bindings.bind("banana").to_instance(banana_to_inject)
+        
+        injector = Injector(bindings)
+        basket = injector.get(self.BasketWithUnspecified)
+        self.assertTrue(basket.apple is apple_to_inject)
+        self.assertTrue(basket.another_apple is default_apple)
+        self.assertTrue(basket.banana is banana_to_inject)
+    
     class Coconut(object):
         def __init__(self):
             self.x = 10
