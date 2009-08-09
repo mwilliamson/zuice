@@ -7,22 +7,11 @@ class Argument(object):
         self.default = default
 
 def get_args_spec(function):
-    if inspect.ismethod(function):
-        return get_method_args_spec(function)
-    if inspect.isfunction(function):
-        return get_function_args_spec(function)
-    raise NotImplementedError
-
-def get_method_args_spec(function):
-    return _get_args_spec(function, True)
-
-def get_function_args_spec(function):
-    return _get_args_spec(function, False)
-    
-def _get_args_spec(function, remove_first_arg):
     arg_specs = inspect.getargspec(function)
     arg_names = arg_specs[0]
-    if remove_first_arg:
+    if len(arg_names) == 0:
+        return []
+    if arg_names[0] == 'self':
         arg_names = arg_names[1:]
     default_args = arg_specs[3] or []
     number_of_required_args = len(arg_names) - len(default_args)
