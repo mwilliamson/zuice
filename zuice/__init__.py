@@ -4,6 +4,7 @@ class Injector(object):
     def __init__(self, bindings):
         self._bindings = bindings.copy()
         self._bindings.bind('injector').to_instance(self)
+        self._bindings.bind(Injector).to_instance(self)
     
     def get(self, key):
         if isinstance(key, basestring):

@@ -328,3 +328,7 @@ class TestInjector(unittest.TestCase):
     def test_injector_name_is_always_bound_to_injector(self):
         injector = Injector(Bindings())
         self.assertTrue(injector.get('injector') is injector)
+        
+    def test_injector_class_is_bound_to_injector(self):
+        injector = Injector(Bindings())
+        self.assertTrue(injector.get(Injector) is injector)
