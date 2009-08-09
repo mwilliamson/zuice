@@ -117,6 +117,8 @@ class TestInjectorBinding(unittest.TestCase):
 class Apple(object):
     pass
     
+default_apple = Apple()
+    
 class Banana(object):
     pass
     
@@ -155,6 +157,26 @@ class TestInjector(unittest.TestCase):
         injector = Injector(bindings)
         basket = injector.get(self.BasketWith)
         self.assertTrue(basket.apple is apple_to_inject)
+        self.assertTrue(basket.banana is banana_to_inject)
+    
+    class BasketWithNamed(object):
+        @inject_with(apple=Apple, banana="banana")
+        def __init__(self, banana, another_apple=default_apple, apple=default_apple):
+            self.apple = apple
+            self.another_apple = another_apple
+            self.banana = banana
+    
+    def test_can_inject_with_using_named_parameters(self):
+        apple_to_inject = Apple()
+        banana_to_inject = Banana()
+        bindings = Bindings()
+        bindings.bind(Apple).to_instance(apple_to_inject)
+        bindings.bind("banana").to_instance(banana_to_inject)
+        
+        injector = Injector(bindings)
+        basket = injector.get(self.BasketWithNamed)
+        self.assertTrue(basket.apple is apple_to_inject)
+        self.assertTrue(basket.another_apple is default_apple)
         self.assertTrue(basket.banana is banana_to_inject)
     
     class Coconut(object):

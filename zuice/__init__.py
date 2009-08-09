@@ -17,7 +17,7 @@ class Injector(object):
         if type_to_get in self._bindings:
             return self._get_from_bindings(type_to_get)
         if hasattr(type_to_get.__init__, 'zuice'):
-            return self._inject(type_to_get)
+            return self._inject(type_to_get, type_to_get.__init__.zuice)
         try:
             return type_to_get()
         except TypeError:
@@ -30,8 +30,7 @@ class Injector(object):
     
     def call(self, method):
         if hasattr(method, 'zuice'):
-            args = method.zuice.build_args(self)
-            return method(*args)
+            return self._inject(method, method.zuice)
         try:
             return method()
         except TypeError:
@@ -42,9 +41,9 @@ class Injector(object):
             raise NoSuchBindingException(key)
         return self._bindings[key](self)
         
-    def _inject(self, type):
-        args = type.__init__.zuice.build_args(self)
-        return type(*args)
+    def _inject(self, to_call, argument_builder):
+        args = argument_builder.build_args(self)
+        return to_call(*args)
 
 class NoSuchBindingException(Exception):
     def __init__(self, key):
@@ -72,15 +71,33 @@ def inject_by_name(constructor):
     return constructor
 
 class _ZuiceConstructorByKey(object):
-    def __init__(self, types):
-        self.types = types
+    def __init__(self, keys):
+        self._keys = keys
     
     def build_args(self, injector):
-        return map(lambda type: injector.get(type), self.types)
+        return map(lambda key: injector.get(key), self._keys)
 
-def inject_with(*keys):
+class _ZuiceConstructorByNamedKey(object):
+    def __init__(self, method, keys):
+        self._method = method
+        self._keys = keys
+        
+    def build_args(self, injector):
+        args_spec = zuice.inspect.get_method_args_spec(self._method)
+        def build_arg(arg):
+            if arg.name in self._keys:
+                return injector.get(self._keys[arg.name])
+            if arg.has_default:
+                return arg.default
+            raise NoSuchBindingException(arg.name)
+        return map(build_arg, args_spec)
+
+def inject_with(*keys, **named_keys):
     def a(constructor):
-        zuice_constructor = _ZuiceConstructorByKey(keys)
+        if len(named_keys) > 0:
+            zuice_constructor = _ZuiceConstructorByNamedKey(constructor, named_keys)
+        else:
+            zuice_constructor = _ZuiceConstructorByKey(keys)
         constructor.zuice = zuice_constructor
         return constructor
     return a
