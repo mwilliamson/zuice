@@ -40,7 +40,7 @@ class Binder(object):
         self._bindings = bindings
     
     def to_instance(self, instance):
-        self.to_provider(lambda injector: instance)
+        self.to_provider(lambda: instance)
         
     def to_type(self, type_to_get):
         if type_to_get is self._key:

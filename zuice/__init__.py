@@ -32,7 +32,10 @@ class Injector(object):
     
     def call(self, method):
         if hasattr(method, 'zuice'):
-            return self._inject(method, method.zuice)
+            zuice_constructor = method.zuice
+        else:
+            zuice_constructor = _ZuiceConstructorByName(method, zuice.inspect.get_args_spec)
+        return self._inject(method, zuice_constructor)
         try:
             return method()
         except TypeError:
@@ -41,7 +44,7 @@ class Injector(object):
     def _get_from_bindings(self, key):
         if key not in self._bindings:
             raise NoSuchBindingException(key)
-        return self._bindings[key](self)
+        return self.call(self._bindings[key])
         
     def _inject(self, to_call, argument_builder):
         args = argument_builder.build_args(self)
@@ -55,11 +58,12 @@ class NoSuchBindingException(Exception):
         return str(self.key)
 
 class _ZuiceConstructorByName(object):
-    def __init__(self, method):
+    def __init__(self, method, argument_inspector):
         self._method = method
+        self._argument_inspector = argument_inspector
     
     def build_args(self, injector):
-        args_spec = zuice.inspect.get_method_args_spec(self._method)
+        args_spec = self._argument_inspector(self._method)
         def build_arg(arg):
             if arg.name in injector._bindings:
                 return injector.get_from_name(arg.name)
@@ -69,7 +73,7 @@ class _ZuiceConstructorByName(object):
         return map(build_arg, args_spec)
         
 def inject_by_name(constructor):
-    constructor.zuice = _ZuiceConstructorByName(constructor)
+    constructor.zuice = _ZuiceConstructorByName(constructor, zuice.inspect.get_method_args_spec)
     return constructor
 
 class _ZuiceConstructorByKey(object):

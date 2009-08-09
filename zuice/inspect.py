@@ -5,7 +5,14 @@ class Argument(object):
         self.name = name
         self.has_default = has_default
         self.default = default
-        
+
+def get_args_spec(function):
+    if inspect.ismethod(function):
+        return get_method_args_spec(function)
+    if inspect.isfunction(function):
+        return get_function_args_spec(function)
+    raise NotImplementedError
+
 def get_method_args_spec(function):
     return _get_args_spec(function, True)
 

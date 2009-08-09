@@ -32,7 +32,7 @@ class TestInjectorBinding(unittest.TestCase):
         Apple = self.Apple
         apple = Apple()
         bindings = Bindings()
-        bindings.bind_type(Apple).to_provider(lambda x: apple)
+        bindings.bind_type(Apple).to_provider(lambda: apple)
         
         injector = Injector(bindings)
         self.assertTrue(injector.get_from_type(Apple) is apple)
@@ -89,7 +89,7 @@ class TestInjectorBinding(unittest.TestCase):
         
         donkey = self.Donkey(4)
         bindings = Bindings()
-        bindings.bind_type(self.Donkey).to_provider(lambda x: donkey)
+        bindings.bind_type(self.Donkey).to_provider(lambda: donkey)
         
         injector = Injector(bindings)
         self.assertTrue(injector.get_from_type(self.Donkey) is donkey)
@@ -102,7 +102,7 @@ class TestInjectorBinding(unittest.TestCase):
         
         apple = Apple()
         bindings = Bindings()
-        bindings.bind_name("apple").to_provider(lambda x: apple)
+        bindings.bind_name("apple").to_provider(lambda: apple)
         
         injector = Injector(bindings)
         self.assertTrue(injector.get_from_name("apple") is apple)
@@ -286,18 +286,7 @@ class TestInjector(unittest.TestCase):
         self.assertTrue(returned_value is banana)
         self.assertTrue(foo.apple is apple)
         self.assertTrue(foo.banana is banana)
-    
-    def test_must_use_annotation_to_allow_method_injection(self):
-        bindings = Bindings()
-        apple = Apple()
-        banana = Banana()
-        bindings.bind("apple").to_instance(apple)
-        bindings.bind("banana").to_instance(banana)
-        foo = self.Foo()
         
-        injector = Injector(bindings)
-        self.assertRaises(NoSuchBindingException, lambda: injector.call(foo.baz))
-    
     def test_can_call_methods_with_no_arguments(self):
         injector = Injector(Bindings())
         foo = self.Foo()
