@@ -14,6 +14,7 @@ Contents:
    quick_start
    zuice
    bindings
+   inspect
 
 Indices and tables
 ==================
