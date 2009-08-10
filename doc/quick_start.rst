@@ -43,7 +43,7 @@ The easiest way of rectifying this is to bind the type directly to a given insta
 This means that ``injector.get(PriceCalculator)`` will always return the same
 instance.
 
-The final method of making ``PriceCalculator`` injectable is to mark its constructor
+The other method of making ``PriceCalculator`` injectable is to mark its constructor
 as injectable::
 
     from zuice import inject_by_name
