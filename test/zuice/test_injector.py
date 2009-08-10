@@ -133,9 +133,10 @@ class TestInjector(unittest.TestCase):
         
     class BasketWith(object):
         @inject_with(Apple, "banana")
-        def __init__(self, apple, banana):
+        def __init__(self, apple, banana, foo=10):
             self.apple = apple
             self.banana = banana
+            self.foo = foo
     
     def test_can_inject_constructor_arguments_by_type(self):
         apple_to_inject = Apple()
@@ -148,6 +149,7 @@ class TestInjector(unittest.TestCase):
         basket = injector.get(self.BasketWith)
         self.assertTrue(basket.apple is apple_to_inject)
         self.assertTrue(basket.banana is banana_to_inject)
+        self.assertEquals(10, basket.foo)
     
     class BasketWithNamed(object):
         @inject_with(apple=Apple, banana="banana")
