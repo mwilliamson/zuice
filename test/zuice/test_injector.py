@@ -6,12 +6,16 @@ from zuice import NoSuchBindingException
 from zuice import inject_by_name
 from zuice import inject_with
 
-class TestInjectorBinding(unittest.TestCase):
-    class Apple(object):
-        pass
+class Apple(object):
+    pass
     
+default_apple = Apple()
+    
+class Banana(object):
+    pass
+    
+class TestInjectorBinding(unittest.TestCase):
     def test_bind_type_to_instance(self):
-        Apple = self.Apple
         apple = Apple()
         bindings = Bindings()
         bindings.bind_type(Apple).to_instance(apple)
@@ -20,7 +24,6 @@ class TestInjectorBinding(unittest.TestCase):
         self.assertTrue(injector.get_from_type(Apple) is apple)
     
     def test_bind_name_to_instance(self):
-        Apple = self.Apple
         apple = Apple()
         bindings = Bindings()
         bindings.bind_name("apple").to_instance(apple)
@@ -29,7 +32,6 @@ class TestInjectorBinding(unittest.TestCase):
         self.assertTrue(injector.get_from_name("apple") is apple)
         
     def test_bind_type_to_provider(self):
-        Apple = self.Apple
         apple = Apple()
         bindings = Bindings()
         bindings.bind_type(Apple).to_provider(lambda: apple)
@@ -38,7 +40,6 @@ class TestInjectorBinding(unittest.TestCase):
         self.assertTrue(injector.get_from_type(Apple) is apple)
     
     def test_get_can_get_by_type_and_name(self):
-        Apple = self.Apple
         apple_by_type = Apple()
         apple_by_name = Apple()
         bindings = Bindings()
@@ -51,22 +52,21 @@ class TestInjectorBinding(unittest.TestCase):
         
     def test_get_from_type_raises_exception_if_key_is_not_type(self):
         bindings = Bindings()
-        bindings.bind("apple").to_instance(self.Apple())
+        bindings.bind("apple").to_instance(Apple())
         injector = Injector(bindings)
         self.assertRaises(TypeError, lambda: injector.get_from_type("apple"))
         
     def test_get_from_name_raises_exception_if_key_is_not_of_correct_type(self):
         bindings = Bindings()
-        bindings.bind(self.Apple).to_instance(self.Apple())
+        bindings.bind(Apple).to_instance(Apple())
         injector = Injector(bindings)
-        self.assertRaises(TypeError, lambda: injector.get_from_name(self.Apple))
+        self.assertRaises(TypeError, lambda: injector.get_from_name(Apple))
         
     def test_get_raises_exception_if_key_is_not_of_correct_type(self):
         injector = Injector(Bindings())
         self.assertRaises(NoSuchBindingException, lambda: injector.get(22))
         
     def test_bind_can_bind_names_and_types(self):
-        Apple = self.Apple
         apple_by_type = Apple()
         apple_by_name = Apple()
         bindings = Bindings()
@@ -95,8 +95,6 @@ class TestInjectorBinding(unittest.TestCase):
         self.assertTrue(injector.get_from_type(self.Donkey) is donkey)
         
     def test_get_from_name_throws_exception_if_no_such_binding_exists(self):
-        Apple = self.Apple
-        
         injector = Injector(Bindings())
         self.assertRaises(NoSuchBindingException, lambda: injector.get_from_name("apple"))
         
@@ -113,14 +111,6 @@ class TestInjectorBinding(unittest.TestCase):
         injector = Injector(bindings)
         bindings.bind("apple").to_instance(Apple())
         self.assertRaises(NoSuchBindingException, lambda: injector.get_from_name("apple"))
-
-class Apple(object):
-    pass
-    
-default_apple = Apple()
-    
-class Banana(object):
-    pass
     
 class TestInjector(unittest.TestCase):
     class BasketByName(object):
