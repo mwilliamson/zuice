@@ -311,3 +311,21 @@ class TestInjector(unittest.TestCase):
     def test_injector_class_is_bound_to_injector(self):
         injector = Injector(Bindings())
         self.assertTrue(injector.get(Injector) is injector)
+
+@inject_by_name
+def to_wrap_with_inject_by_name():
+    """Docstring"""
+    pass
+    
+def test_inject_by_name_wraps_functions():
+    assert to_wrap_with_inject_by_name.__name__ == 'to_wrap_with_inject_by_name'
+    assert to_wrap_with_inject_by_name.__doc__ == 'Docstring'
+
+@inject_with()
+def to_wrap_with_inject_with():
+    """Docstring"""
+    pass
+    
+def test_inject_with_wraps_functions():
+    assert to_wrap_with_inject_with.__name__ == 'to_wrap_with_inject_with'
+    assert to_wrap_with_inject_with.__doc__ == 'Docstring'
