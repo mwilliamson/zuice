@@ -80,6 +80,28 @@
                 
         apple = Apple(injector.get(Foo), injector.get("default_bar"))
         
+    If there are fewer keys specified than arguments, the remaining arguments
+    use their default values, if they have any -- otherwise, the injection fails.
     
+    If instead :func:`inject_with` is called with keyword arguments only, each key
+    is matched up to the name of the argument accordingly. For instance::
+    
+        class Apple(object):
+            @inject_with(baz="default_baz", foo=Foo)
+            def __init__(self, foo, bar="bar", baz="baz"):
+                pass
+                
+        apple = injector.get(Apple)
         
+    is roughly equivalent to::
+    
+        class Apple(object):
+            def __init__(self, foo, bar="bar", baz="baz"):
+                pass
+                
+        apple = Apple(foo=injector.get(Foo), baz=injector.get("default_baz"))
+        
+    The behaviour of this decorator when called with both non-keyword and keyword
+    arguments is undefined.
+    
     
