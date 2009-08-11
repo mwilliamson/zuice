@@ -15,7 +15,7 @@ class Injector(object):
     
     def get_from_type(self, type_to_get):
         if not isinstance(type_to_get, type):
-            raise TypeError, str(type_to_get) + " is not a type"
+            raise TypeError(str(type_to_get) + " is not a type")
         if type_to_get in self._bindings:
             return self._get_from_bindings(type_to_get)
         if hasattr(type_to_get.__init__, 'zuice'):
