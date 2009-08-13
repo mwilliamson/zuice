@@ -18,5 +18,5 @@ def get_args_spec(function):
     has_defaults = ([False] * number_of_required_args) + ([True] * len(default_args))
     defaults = ([None] * number_of_required_args) + list(default_args)
     
-    return map(lambda i: Argument(arg_names[i], has_defaults[i], defaults[i]), range(0, len(arg_names)))
+    return [Argument(arg_names[i], has_defaults[i], defaults[i]) for i in range(0, len(arg_names))]
     
