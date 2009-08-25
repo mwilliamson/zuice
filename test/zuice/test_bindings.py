@@ -40,3 +40,19 @@ class TestBindings(unittest.TestCase):
         bindings.bind('apple').to_instance(apple)
         self.assertRaises(AlreadyBoundException, lambda: bindings.bind('apple'))
         self.assertRaises(AlreadyBoundException, lambda: bindings.bind_name('apple'))
+    
+    def test_cannot_bind_type_to_itself(self):
+        bindings = Bindings()
+        self.assertRaises(TypeError, lambda: bindings.bind(Apple).to_type(Apple))
+    
+    def test_bind_to_type_only_accepts_types(self):
+        bindings = Bindings()
+        self.assertRaises(TypeError, lambda: bindings.bind("banana").to_type("apple"))
+    
+    def test_cannot_bind_name_to_itself(self):
+        bindings = Bindings()
+        self.assertRaises(TypeError, lambda: bindings.bind("apple").to_name("apple"))
+    
+    def test_bind_to_name_only_accepts_strings(self):
+        bindings = Bindings()
+        self.assertRaises(TypeError, lambda: bindings.bind("apple").to_name(Apple))

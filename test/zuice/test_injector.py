@@ -217,14 +217,6 @@ class TestInjector(unittest.TestCase):
         basket = injector.get("basket")
         self.assertTrue(basket.apple is apple_to_inject)
         self.assertTrue(basket.banana is banana_to_inject)
-    
-    def test_cannot_bind_type_to_itself(self):
-        bindings = Bindings()
-        self.assertRaises(TypeError, lambda: bindings.bind(Apple).to_type(Apple))
-    
-    def test_bind_to_type_only_accepts_types(self):
-        bindings = Bindings()
-        self.assertRaises(TypeError, lambda: bindings.bind("banana").to_type("apple"))
 
     def test_can_bind_to_names(self):
         apple_to_inject = Apple()
@@ -234,14 +226,6 @@ class TestInjector(unittest.TestCase):
         
         injector = Injector(bindings)
         self.assertTrue(injector.get("another_apple") is apple_to_inject)
-    
-    def test_cannot_bind_name_to_itself(self):
-        bindings = Bindings()
-        self.assertRaises(TypeError, lambda: bindings.bind("apple").to_name("apple"))
-    
-    def test_bind_to_name_only_accepts_strings(self):
-        bindings = Bindings()
-        self.assertRaises(TypeError, lambda: bindings.bind("banana").to_name(Banana))
     
     def test_uses_bindings_before_injection(self):
         bindings = Bindings()
