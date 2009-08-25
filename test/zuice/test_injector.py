@@ -171,6 +171,24 @@ class TestInjector(unittest.TestCase):
         self.assertTrue(basket.another_apple is default_apple)
         self.assertTrue(basket.banana is banana_to_inject)
     
+    class BasketWithKwargs(object):
+        @inject_with(apple=Apple, banana="banana")
+        def __init__(self, apple, **kwargs):
+            self.apple = apple
+            self.kwargs = kwargs
+    
+    def test_keys_without_matching_parameters_are_used_as_keyword_arguments(self):
+        apple_to_inject = Apple()
+        banana_to_inject = Banana()
+        bindings = Bindings()
+        bindings.bind(Apple).to_instance(apple_to_inject)
+        bindings.bind("banana").to_instance(banana_to_inject)
+        
+        injector = Injector(bindings)
+        basket = injector.get(self.BasketWithKwargs)
+        self.assertTrue(basket.apple is apple_to_inject)
+        self.assertTrue(basket.kwargs['banana'] is banana_to_inject)
+    
     class BasketWithUnspecified(object):
         @inject_with(banana="banana")
         def __init__(self, banana, apple=default_apple):

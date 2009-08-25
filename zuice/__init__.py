@@ -48,7 +48,7 @@ class Injector(object):
         
     def _inject(self, to_call, argument_builder):
         args = argument_builder.build_args(self)
-        return to_call(*args)
+        return to_call(*args.args, **args.kwargs)
 
 class NoSuchBindingException(Exception):
     def __init__(self, key):
@@ -56,6 +56,11 @@ class NoSuchBindingException(Exception):
         
     def __str__(self):
         return str(self.key)
+
+class _Arguments(object):
+    def __init__(self, args, kwargs):
+        self.args = args
+        self.kwargs = kwargs
 
 class _ZuiceConstructorByName(object):
     def __init__(self, method, argument_inspector):
@@ -70,7 +75,7 @@ class _ZuiceConstructorByName(object):
             if arg.has_default:
                 return arg.default
             raise NoSuchBindingException(arg.name)
-        return map(build_arg, args_spec)
+        return _Arguments(map(build_arg, args_spec), {})
         
 def inject_by_name(constructor):
     constructor.zuice = _ZuiceConstructorByName(constructor, zuice.inspect.get_args_spec)
@@ -81,7 +86,7 @@ class _ZuiceConstructorByKey(object):
         self._keys = keys
     
     def build_args(self, injector):
-        return map(lambda key: injector.get(key), self._keys)
+        return _Arguments(map(lambda key: injector.get(key), self._keys), {})
 
 class _ZuiceConstructorByNamedKey(object):
     def __init__(self, method, keys):
@@ -89,17 +94,24 @@ class _ZuiceConstructorByNamedKey(object):
         self._keys = keys
         
     def build_args(self, injector):
-        args_spec = zuice.inspect.get_args_spec(self._method)
-        def build_arg(arg):
-            if arg.name in self._keys:
-                return injector.get(self._keys[arg.name])
+        def build_non_keyword_arg(arg):
             try:
                 return injector.get(arg.name)
             except NoSuchBindingException:
                 if arg.has_default:
                     return arg.default
                 raise NoSuchBindingException(arg.name)
-        return map(build_arg, args_spec)
+                
+        kwargs = {}
+        for key in self._keys:
+            kwargs[key] = injector.get(self._keys[key])
+        
+        args_spec = zuice.inspect.get_args_spec(self._method)
+        for arg in args_spec:
+            if arg.name not in self._keys:
+                kwargs[arg.name] = build_non_keyword_arg(arg)
+            
+        return _Arguments([], kwargs)
 
 def inject_with(*keys, **named_keys):
     def a(constructor):
