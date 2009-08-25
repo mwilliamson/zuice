@@ -20,6 +20,16 @@ def test_keyword_arguments_are_assigned_to_fields():
     assert foo.x == 4
     assert foo.y == "pourquoi"
 
+def test_defaults_are_assigned_to_fields():
+    class Foo(object):
+        @auto_assign
+        def __init__(self, x, y="pourquoi"):
+            pass
+            
+    foo = Foo(4)
+    assert foo.x == 4
+    assert foo.y == "pourquoi"
+
 def test_original_constructor_is_called_after_assignment():
     class Foo(object):
         @auto_assign

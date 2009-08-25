@@ -9,7 +9,11 @@ def auto_assign(constructor):
         for index in range(0, len(args)):
             setattr(self, arg_specs[index].name, args[index])
         for index in range(len(args), len(arg_specs)):
-            arg_name = arg_specs[index].name
-            setattr(self, arg_name, kwargs[arg_name])
+            arg_spec = arg_specs[index]
+            arg_name = arg_spec.name
+            if arg_name in kwargs:
+                setattr(self, arg_name, kwargs[arg_name])
+            elif arg_spec.has_default:
+                setattr(self, arg_name, arg_spec.default)
         constructor(self, *args, **kwargs)
     return new_constructor
