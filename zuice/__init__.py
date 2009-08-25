@@ -89,29 +89,31 @@ class _ZuiceConstructorByKey(object):
         return _Arguments(map(lambda key: injector.get(key), self._keys), {})
 
 class _ZuiceConstructorByNamedKey(object):
-    def __init__(self, method, keys):
+    def __init__(self, method, named_keys):
         self._method = method
-        self._keys = keys
+        self._named_keys = named_keys
         
     def build_args(self, injector):
-        def build_non_keyword_arg(arg):
+        def build_arg(arg):
+            if arg.name in self._named_keys:
+                return injector.get(self._named_keys[arg.name])
             try:
                 return injector.get(arg.name)
             except NoSuchBindingException:
                 if arg.has_default:
                     return arg.default
                 raise NoSuchBindingException(arg.name)
-                
-        kwargs = {}
-        for key in self._keys:
-            kwargs[key] = injector.get(self._keys[key])
-        
+
         args_spec = zuice.inspect.get_args_spec(self._method)
-        for arg in args_spec:
-            if arg.name not in self._keys:
-                kwargs[arg.name] = build_non_keyword_arg(arg)
+        arg_names = [arg.name for arg in args_spec]
+        args = map(build_arg, args_spec)
+        
+        kwargs = {}
+        for key in self._named_keys:
+            if key not in arg_names:
+                kwargs[key] = injector.get(self._named_keys[key])
             
-        return _Arguments([], kwargs)
+        return _Arguments(args, kwargs)
 
 def inject_with(*keys, **named_keys):
     def a(constructor):
