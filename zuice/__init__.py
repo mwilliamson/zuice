@@ -81,31 +81,29 @@ def inject_by_name(constructor):
     constructor.zuice = _ZuiceConstructorByName(constructor, zuice.inspect.get_args_spec)
     return constructor
 
-class _ZuiceConstructorByKey(object):
-    def __init__(self, keys):
-        self._keys = keys
-    
-    def build_args(self, injector):
-        return _Arguments(map(lambda key: injector.get(key), self._keys), {})
-
 class _ZuiceConstructorByNamedKey(object):
-    def __init__(self, method, named_keys):
+    def __init__(self, method, keys, named_keys):
         self._method = method
+        self._keys = keys
         self._named_keys = named_keys
         
     def build_args(self, injector):
+        args_spec = zuice.inspect.get_args_spec(self._method)
+        arg_names = [arg.name for arg in args_spec]
+        
+        keys = self._named_keys.copy()
+        for index in range(0, len(self._keys)):
+            keys[arg_names[index]] = self._keys[index]
+        
         def build_arg(arg):
-            if arg.name in self._named_keys:
-                return injector.get(self._named_keys[arg.name])
+            if arg.name in keys:
+                return injector.get(keys[arg.name])
             try:
                 return injector.get(arg.name)
             except NoSuchBindingException:
                 if arg.has_default:
                     return arg.default
                 raise NoSuchBindingException(arg.name)
-
-        args_spec = zuice.inspect.get_args_spec(self._method)
-        arg_names = [arg.name for arg in args_spec]
         args = map(build_arg, args_spec)
         
         kwargs = {}
@@ -117,10 +115,7 @@ class _ZuiceConstructorByNamedKey(object):
 
 def inject_with(*keys, **named_keys):
     def a(constructor):
-        if len(named_keys) > 0:
-            zuice_constructor = _ZuiceConstructorByNamedKey(constructor, named_keys)
-        else:
-            zuice_constructor = _ZuiceConstructorByKey(keys)
+        zuice_constructor = _ZuiceConstructorByNamedKey(constructor, keys, named_keys)
         constructor.zuice = zuice_constructor
         return constructor
     return a
