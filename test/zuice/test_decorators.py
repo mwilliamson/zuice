@@ -1,12 +1,22 @@
 from zuice.decorators import auto_assign
 
-def test_arguments_are_assigned_to_fields():
+def test_positional_arguments_are_assigned_to_fields():
     class Foo(object):
         @auto_assign
         def __init__(self, x, y):
             pass
             
     foo = Foo(4, "pourquoi")
+    assert foo.x == 4
+    assert foo.y == "pourquoi"
+
+def test_keyword_arguments_are_assigned_to_fields():
+    class Foo(object):
+        @auto_assign
+        def __init__(self, x, y):
+            pass
+            
+    foo = Foo(4, y="pourquoi")
     assert foo.x == 4
     assert foo.y == "pourquoi"
 
