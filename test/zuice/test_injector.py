@@ -207,6 +207,14 @@ class TestInjector(unittest.TestCase):
         self.assertTrue(basket.apple is apple_to_inject)
         self.assertTrue(basket.banana is banana_to_inject)
     
+    def test_overspecifying_argument_results_in_exception(self):
+        def define_overspecified():
+            class Overspecified(object):
+                @inject_with("banana", banana="banana")
+                def __init__(self, banana):
+                    pass
+        self.assertRaises(TypeError, define_overspecified)
+    
     class Coconut(object):
         def __init__(self):
             self.x = 10

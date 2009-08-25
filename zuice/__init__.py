@@ -83,32 +83,32 @@ def inject_by_name(constructor):
 
 class _ZuiceConstructorByNamedKey(object):
     def __init__(self, method, keys, named_keys):
-        self._method = method
-        self._keys = keys
         self._named_keys = named_keys
+        self._args_spec = zuice.inspect.get_args_spec(method)
+        self._arg_names = [arg.name for arg in self._args_spec]
+        
+        self._keys = named_keys.copy()
+        for index in range(0, len(keys)):
+            arg_name = self._arg_names[index]
+            if arg_name in named_keys:
+                raise TypeError("The argument " + arg_name + " is overspecified")
+            self._keys[arg_name] = keys[index]
         
     def build_args(self, injector):
-        args_spec = zuice.inspect.get_args_spec(self._method)
-        arg_names = [arg.name for arg in args_spec]
-        
-        keys = self._named_keys.copy()
-        for index in range(0, len(self._keys)):
-            keys[arg_names[index]] = self._keys[index]
-        
         def build_arg(arg):
-            if arg.name in keys:
-                return injector.get(keys[arg.name])
+            if arg.name in self._keys:
+                return injector.get(self._keys[arg.name])
             try:
                 return injector.get(arg.name)
             except NoSuchBindingException:
                 if arg.has_default:
                     return arg.default
                 raise NoSuchBindingException(arg.name)
-        args = map(build_arg, args_spec)
+        args = map(build_arg, self._args_spec)
         
         kwargs = {}
         for key in self._named_keys:
-            if key not in arg_names:
+            if key not in self._arg_names:
                 kwargs[key] = injector.get(self._named_keys[key])
             
         return _Arguments(args, kwargs)
