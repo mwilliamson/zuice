@@ -36,10 +36,6 @@ class Injector(object):
         else:
             zuice_constructor = _ZuiceConstructorByNamedKey(method, [], {})
         return self._inject(method, zuice_constructor)
-        try:
-            return method()
-        except TypeError:
-            raise NoSuchBindingException(method)
     
     def _get_from_bindings(self, key):
         if key not in self._bindings:
