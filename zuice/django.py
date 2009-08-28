@@ -19,11 +19,12 @@ def _view_builder(bindings):
     return view
 
 def url_to_class_builder(bindings):
+    view = _view_builder(bindings.copy())
     def url_to_class(regex, view_class, kwargs=None, name=None):
         if kwargs is None:
             kwargs = {}
         kwargs['view_class'] = view_class
-        return django.conf.urls.defaults.url(regex, _view_builder(bindings), kwargs, name=name)
+        return django.conf.urls.defaults.url(regex, view, kwargs, name=name)
         
     return url_to_class
     
