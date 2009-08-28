@@ -3,8 +3,8 @@ django = __import__("django.conf.urls.defaults", {})
 from zuice import Injector
 
 def _view_builder(bindings):
+    view_injector = Injector(bindings)
     def view(request, view_class, **kwargs):
-        view_injector = Injector(bindings)
         view = view_injector.get_from_type(view_class)
 
         bindings_for_response = bindings.copy()
