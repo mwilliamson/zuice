@@ -3,6 +3,12 @@ django = __import__("django.conf.urls.defaults", {})
 from zuice import Injector
 
 def _view_builder(bindings):
+    class Database(object):
+        def save(self, to_save):
+            to_save.save()
+            
+    bindings = bindings.copy()
+    bindings.bind('database').to_type(Database)
     view_injector = Injector(bindings)
     def view(request, view_class, **kwargs):
         view = view_injector.get_from_type(view_class)
@@ -19,7 +25,7 @@ def _view_builder(bindings):
     return view
 
 def url_to_class_builder(bindings):
-    view = _view_builder(bindings.copy())
+    view = _view_builder(bindings)
     def url_to_class(regex, view_class, kwargs=None, name=None):
         if kwargs is None:
             kwargs = {}

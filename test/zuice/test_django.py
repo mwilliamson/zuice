@@ -109,3 +109,36 @@ def test_uses_passed_bindings_in_constructor_and_respond():
     url = url_to_class("regex", VeryInterestingView)
     response = url.view(None, foo=1, bar=2, **url.kwargs)
     assert response == (apple, banana, 1, 2)
+
+def test_injected_database_saves_objects():
+    class Apple(object):
+        def __init__(self):
+            self.saved = False
+        def save(self):
+            self.saved = True
+    
+    class SavingView(object):
+        @inject_by_name
+        def __init__(self, database):
+            self.database = database
+            
+        def respond(self, apple):
+            self.database.save(apple)
+            return Response("")
+
+    apple = Apple()
+    bindings = Bindings()
+    bindings.bind("apple").to_instance(apple)
+    
+    url_to_class = url_to_class_builder(bindings)
+    url = url_to_class("regex", SavingView)
+    url.view(None, foo=1, bar=2, **url.kwargs)
+    
+    assert apple.saved
+
+class test_passed_bindings_are_not_modified():
+    bindings = Bindings()
+    url_to_class = url_to_class_builder(bindings)
+    
+    assert len(bindings._bindings) == 0
+    
