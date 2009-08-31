@@ -59,7 +59,7 @@
     
         Bind the key to a specific instance. Whenever the injector attempts to
         get an instance associated with the key, this same instance will always
-        be returned. Equivalent to calling ``to_provider(lambda injector: instance)``.
+        be returned. Equivalent to calling ``to_provider(lambda: instance)``.
     
     .. method:: to_type(type_to_bind_to)
     
