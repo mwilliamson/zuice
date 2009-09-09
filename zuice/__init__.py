@@ -112,6 +112,30 @@ def inject_with(*keys, **named_keys):
         return constructor
     return a
 
+class ZuiceConstructorForMembers(object):
+    def __init__(self, members):
+        self._members = members
+    
+    def build_args(self, injector):
+        kwargs = {}
+        
+        for key in self._members:
+            kwargs[key] = injector.get(self._members[key])
+        
+        return _Arguments([], kwargs)
+
+def inject_members(**members):
+    def create_constructor(constructor):
+        def assign_members(self, *args, **kwargs):
+            for member in members:
+                setattr(self, member, kwargs.pop(member))
+            constructor(self, *args, **kwargs)
+        
+        assign_members.zuice = ZuiceConstructorForMembers(members)
+        return assign_members
+        
+    return create_constructor
+
 class InjectedMember(object):
     def __init__(self, key):
         self._key = key

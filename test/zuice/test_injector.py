@@ -5,6 +5,7 @@ from zuice import Injector
 from zuice import NoSuchBindingException
 from zuice import inject_by_name
 from zuice import inject_with
+from zuice import inject_members
 
 from zuice import inject
 from zuice import Injectable
@@ -343,6 +344,29 @@ def test_inject_with_wraps_functions():
     assert to_wrap_with_inject_with.__name__ == 'to_wrap_with_inject_with'
     assert to_wrap_with_inject_with.__doc__ == 'Docstring'
 
+def test_inject_members_assigns_the_given_attributes():
+    class Foo(Injectable):
+        @inject_members(_tag_fetcher='tag_fetcher')
+        def __init__(self):
+            pass
+    
+    tag_fetcher = {'some': 'object'}
+    
+    bindings = Bindings()
+    bindings.bind("tag_fetcher").to_instance(tag_fetcher)
+    injector = Injector(bindings)
+    assert injector.get(Foo)._tag_fetcher is tag_fetcher
+    
+def test_inject_members_allows_constructor_arguments_to_be_passed_manually():
+    class Foo(Injectable):
+        @inject_members(_tag_fetcher='tag_fetcher')
+        def __init__(self):
+            pass
+    
+    tag_fetcher = {'some': 'object'}
+    
+    assert Foo(_tag_fetcher=tag_fetcher)._tag_fetcher is tag_fetcher
+
 def test_classes_that_inherit_from_injectable_have_members_injected():
     class Foo(Injectable):
         _tag_fetcher = inject("tag_fetcher")
@@ -352,5 +376,4 @@ def test_classes_that_inherit_from_injectable_have_members_injected():
     bindings = Bindings()
     bindings.bind("tag_fetcher").to_instance(tag_fetcher)
     injector = Injector(bindings)
-    print injector.get(Foo)._tag_fetcher
     assert injector.get(Foo)._tag_fetcher is tag_fetcher
