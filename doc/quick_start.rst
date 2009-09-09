@@ -1,8 +1,8 @@
 Quick Start
 ===========
 
-Let's say that we have a ``PriceCalculator`` class that works out the prices
-of various commodities using a ``PriceFetcher``::
+Let's say that we have a :class:`PriceCalculator` class that works out the prices
+of various commodities using a :class:`PriceFetcher`::
 
     class PriceCalculator(object):
         def __init__(self, price_fetcher):
@@ -15,7 +15,7 @@ of various commodities using a ``PriceFetcher``::
 So we could, for instance, find the price of 10 apples using 
 ``price_calculator.price_of(apples, 10)``.
 
-To get an instance of a ``PriceCalculator``, we need an :class:`~zuice.Injector`, which must be
+To get an instance of a :class:`PriceCalculator`, we need an :class:`~zuice.Injector`, which must be
 constructed with a :class:`~zuice.bindings.Bindings`::
 
     from zuice import Injector
@@ -25,7 +25,7 @@ constructed with a :class:`~zuice.bindings.Bindings`::
     injector = Injector(bindings)
     price_calculator = injector.get(PriceCalculator)
 
-At the moment, this code will fail since ``PriceCalculator`` is not injectable -- 
+At the moment, this code will fail since :class:`PriceCalculator` is not injectable -- 
 Zuice does not know what to pass in for the argument ``price_fetcher``. If
 ``PriceCalculator.__init__`` could be called with no arguments (other than ``self``)
 then the call ``injector.get(PriceCalculator)`` would have succeeded -- Zuice would
@@ -43,7 +43,7 @@ The easiest way of rectifying this is to bind the type directly to a given insta
 This means that ``injector.get(PriceCalculator)`` will always return the same
 instance.
 
-The other method of making ``PriceCalculator`` injectable is to mark its constructor
+The other method of making :class:`PriceCalculator` injectable is to mark its constructor
 as injectable::
 
     from zuice import inject_by_name
@@ -57,7 +57,7 @@ as injectable::
             price = self._price_fetcher.price_of(commodity)
             return price * number
 
-However, attempting to get a ``PriceCalculator`` will fail since Zuice still
+However, attempting to get a :class:`PriceCalculator` will fail since Zuice still
 does not know what should be passed in as ``price_fetcher``.
 
 We need some way of binding the argument ``price_fetcher`` to the relevant class. In a
@@ -78,9 +78,9 @@ be done by the name of each argument. We therefore need to bind the string
     price_calculator = injector.get(PriceCalculator)
 
 Each time Zuice finds an argument called ``price_fetcher``, it will attempt to
-inject ``PriceFetcher``. ``PriceFetcher`` may already be injectable if its
+inject :class:`PriceFetcher`. :class:`PriceFetcher` may already be injectable if its
 constructor takes no arguments. Otherwise, it can be made injectable in the same
-manner as ``PriceCalculator``. We could also bind the name directly to an instance::
+manner as :class:`PriceCalculator`. We could also bind the name directly to an instance::
 
     from zuice import Injector
     from zuice.bindings import Bindings
@@ -103,7 +103,7 @@ The second method is binding by key, using the decorator :func:`~zuice.inject_wi
             price = self._price_fetcher.price_of(commodity)
             return price * number
 
-We then need to make sure that the ``PriceFetcher`` class is injectable.
+We then need to make sure that the :class:`PriceFetcher` class is injectable.
     
 .. note:: A type is injectable if either:
 

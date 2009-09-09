@@ -18,12 +18,9 @@ class Injector(object):
             raise TypeError(str(type_to_get) + " is not a type")
         if type_to_get in self._bindings:
             return self._get_from_bindings(type_to_get)
-        if hasattr(type_to_get.__init__, 'zuice'):
-            return self._inject(type_to_get, type_to_get.__init__.zuice)
-        try:
-            return type_to_get()
-        except TypeError:
-            raise NoSuchBindingException(type_to_get)
+        new = self._construct(type_to_get)
+        self._inject_members(new)
+        return new
         
     def get_from_name(self, name):
         if not isinstance(name, basestring):
@@ -45,6 +42,22 @@ class Injector(object):
     def _inject(self, to_call, argument_builder):
         args = argument_builder.build_args(self)
         return to_call(*args.args, **args.kwargs)
+    
+    def _construct(self, type_to_construct):
+        if hasattr(type_to_construct.__init__, 'zuice'):
+            return self._inject(type_to_construct, type_to_construct.__init__.zuice)
+        try:
+            return type_to_construct()
+        except TypeError:
+            raise NoSuchBindingException(type_to_construct)
+    
+    def _inject_members(self, new):
+        clazz = type(new)
+        for key in clazz.__dict__:
+            attr = getattr(clazz, key)
+            if isinstance(attr, InjectedMember):
+                setattr(new, key, attr.inject(self))
+
 
 class NoSuchBindingException(Exception):
     def __init__(self, key):
@@ -98,3 +111,16 @@ def inject_with(*keys, **named_keys):
         constructor.zuice = zuice_constructor
         return constructor
     return a
+
+class InjectedMember(object):
+    def __init__(self, key):
+        self._key = key
+        
+    def inject(self, injector):
+        return injector.get(self._key)
+
+def inject(key):
+    return InjectedMember(key)
+
+class Injectable(object):
+    pass
