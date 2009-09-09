@@ -128,6 +128,8 @@ def inject_members(**members):
     def create_constructor(constructor):
         def assign_members(self, *args, **kwargs):
             for member in members:
+                if member not in kwargs:
+                    raise TypeError("Missing keyword argument: %s" % member)
                 setattr(self, member, kwargs.pop(member))
             constructor(self, *args, **kwargs)
         

@@ -1,4 +1,5 @@
 import unittest
+from nose.tools import assert_raises
 
 from zuice.bindings import Bindings
 from zuice import Injector
@@ -366,6 +367,16 @@ def test_inject_members_allows_constructor_arguments_to_be_passed_manually():
     tag_fetcher = {'some': 'object'}
     
     assert Foo(_tag_fetcher=tag_fetcher)._tag_fetcher is tag_fetcher
+    
+def test_inject_members_manually_with_missing_args_raises_type_error():
+    class Foo(Injectable):
+        @inject_members(_tag_fetcher='tag_fetcher', _blog_post_fetcher='post_fetcher')
+        def __init__(self):
+            pass
+    
+    tag_fetcher = {'some': 'object'}
+    
+    assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher))
 
 def test_classes_that_inherit_from_injectable_have_members_injected():
     class Foo(Injectable):
