@@ -136,8 +136,12 @@ def inject(key):
     return InjectedMember(key)
 
 class Injectable(object):
-    @inject_by_name
-    def __init__(self, injector=None, **kwargs):
+    @inject_with(injector='injector')
+    def __init__(self, **kwargs):
+        if 'injector' in kwargs:
+            injector = kwargs.pop('injector')
+        else:
+            injector = None
         clazz = type(self)
         for key in clazz.__dict__:
             attr = getattr(clazz, key)

@@ -425,3 +425,12 @@ def test_injectable_injecting_manually_with_extra_members_raises_type_error():
     post_fetcher = {'another': 'object'}
     
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher, _post_fetcher=post_fetcher))
+
+def test_injectable_injecting_positional_arguments_raises_type_error():
+    class Foo(Injectable):
+        _tag_fetcher = inject('tag_fetcher')
+        
+    tag_fetcher = {'some': 'object'}
+    
+    assert_raises(TypeError, lambda: Foo(tag_fetcher))
+    
