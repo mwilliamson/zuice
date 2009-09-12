@@ -100,3 +100,55 @@
                 pass
                 
         apple = Apple(injector.get(Foo), baz=injector.get("default_baz"))
+
+.. function:: inject_attrs(**attributes)
+
+    Injects the attributes according to the passed keyword arguments. For instance::
+    
+        class PriceCalculator(object):
+            @inject_attrs(_price_fetcher=PriceFetcher)
+            def __init__(self):
+                # Do stuff with self._price_fetcher
+                ...
+        
+        price_calculator = injector.get(PriceCalculator)
+        
+    is roughly equivalent to::
+    
+        class PriceCalculator(object):
+            def __init__(self, injector):
+                self._price_fetcher = injector.get(PriceFetcher)
+                # Do stuff with self._price_fetcher
+        
+        price_calculator = PriceCalculator(injector)
+        
+    Using :func:`~zuice.inject_attrs` modifies the signature of the
+    constructor by requiring the attributes as keyword arguments. To
+    manually construct a :class:`PriceCalculator`, we write::
+
+        price_fetcher = ...
+        price_calculator = PriceCalculator(_price_fetcher=price_fetcher)
+    
+.. class:: Injectable
+
+    Classes than inherit from :class:`~zuice.Injectable` will have attributes defined by
+    :func:`~zuice.inject` injected when the class itself is injected. See
+    :func:`~zuice.inject`.
+    
+.. function:: inject(key)
+
+    Defines the keys with which attributes are to be injected. For instance::
+    
+        class PriceCalculator(Injectable):
+            _price_fetcher = inject(PriceFetcher)
+    
+        price_calculator = injector.get(PriceCalculator)
+        
+    is roughly equivalent to::
+    
+        class PriceCalculator(object):
+            def __init__(self, injector):
+                self._price_fetcher = injector.get(PriceFetcher)
+        
+        price_calculator = injector.get(PriceCalculator)
+        
