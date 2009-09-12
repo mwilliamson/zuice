@@ -346,7 +346,7 @@ def test_inject_with_wraps_functions():
     assert to_wrap_with_inject_with.__doc__ == 'Docstring'
 
 def test_inject_members_assigns_the_given_attributes():
-    class Foo(Injectable):
+    class Foo(object):
         @inject_members(_tag_fetcher='tag_fetcher')
         def __init__(self):
             pass
@@ -359,7 +359,7 @@ def test_inject_members_assigns_the_given_attributes():
     assert injector.get(Foo)._tag_fetcher is tag_fetcher
     
 def test_inject_members_allows_constructor_arguments_to_be_passed_manually():
-    class Foo(Injectable):
+    class Foo(object):
         @inject_members(_tag_fetcher='tag_fetcher')
         def __init__(self):
             pass
@@ -369,7 +369,7 @@ def test_inject_members_allows_constructor_arguments_to_be_passed_manually():
     assert Foo(_tag_fetcher=tag_fetcher)._tag_fetcher is tag_fetcher
     
 def test_inject_members_manually_with_missing_args_raises_type_error():
-    class Foo(Injectable):
+    class Foo(object):
         @inject_members(_tag_fetcher='tag_fetcher', _blog_post_fetcher='post_fetcher')
         def __init__(self):
             pass
@@ -377,6 +377,17 @@ def test_inject_members_manually_with_missing_args_raises_type_error():
     tag_fetcher = {'some': 'object'}
     
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher))
+
+def test_inject_members_injecting_manually_with_extra_members_raises_type_error():
+    class Foo(object):
+        @inject_members(_tag_fetcher='tag_fetcher')
+        def __init__(self):
+            pass
+    
+    tag_fetcher = {'some': 'object'}
+    post_fetcher = {'another': 'object'}
+    
+    assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher, _post_fetcher=post_fetcher))
 
 def test_classes_that_inherit_from_injectable_have_members_injected():
     class Foo(Injectable):
@@ -388,3 +399,29 @@ def test_classes_that_inherit_from_injectable_have_members_injected():
     bindings.bind("tag_fetcher").to_instance(tag_fetcher)
     injector = Injector(bindings)
     assert injector.get(Foo)._tag_fetcher is tag_fetcher
+
+def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually():
+    class Foo(Injectable):
+        _tag_fetcher = inject("tag_fetcher")
+    
+    tag_fetcher = {'some': 'object'}
+    
+    assert Foo(_tag_fetcher=tag_fetcher)._tag_fetcher is tag_fetcher
+
+def test_missing_constructor_arguments_in_injectable_raises_type_error():
+    class Foo(Injectable):
+        _tag_fetcher = inject("tag_fetcher")
+        _blog_post_fetcher = inject('post_fetcher')
+    
+    tag_fetcher = {'some': 'object'}
+    
+    assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher))
+
+def test_injectable_injecting_manually_with_extra_members_raises_type_error():
+    class Foo(Injectable):
+        _tag_fetcher = inject("tag_fetcher")
+    
+    tag_fetcher = {'some': 'object'}
+    post_fetcher = {'another': 'object'}
+    
+    assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher, _post_fetcher=post_fetcher))

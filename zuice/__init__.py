@@ -18,9 +18,12 @@ class Injector(object):
             raise TypeError(str(type_to_get) + " is not a type")
         if type_to_get in self._bindings:
             return self._get_from_bindings(type_to_get)
-        new = self._construct(type_to_get)
-        self._inject_members(new)
-        return new
+        if hasattr(type_to_get.__init__, 'zuice'):
+            return self._inject(type_to_get, type_to_get.__init__.zuice)
+        try:
+            return type_to_get()
+        except TypeError:
+            raise NoSuchBindingException(type_to_get)
         
     def get_from_name(self, name):
         if not isinstance(name, basestring):
@@ -43,22 +46,6 @@ class Injector(object):
         args = argument_builder.build_args(self)
         return to_call(*args.args, **args.kwargs)
     
-    def _construct(self, type_to_construct):
-        if hasattr(type_to_construct.__init__, 'zuice'):
-            return self._inject(type_to_construct, type_to_construct.__init__.zuice)
-        try:
-            return type_to_construct()
-        except TypeError:
-            raise NoSuchBindingException(type_to_construct)
-    
-    def _inject_members(self, new):
-        clazz = type(new)
-        for key in clazz.__dict__:
-            attr = getattr(clazz, key)
-            if isinstance(attr, InjectedMember):
-                setattr(new, key, attr.inject(self))
-
-
 class NoSuchBindingException(Exception):
     def __init__(self, key):
         self.key = key
@@ -149,4 +136,19 @@ def inject(key):
     return InjectedMember(key)
 
 class Injectable(object):
-    pass
+    @inject_by_name
+    def __init__(self, injector=None, **kwargs):
+        clazz = type(self)
+        for key in clazz.__dict__:
+            attr = getattr(clazz, key)
+            if isinstance(attr, InjectedMember):
+                if injector is not None:
+                    setattr(self, key, attr.inject(injector))
+                else:
+                    if key not in kwargs:
+                        raise TypeError("Missing keyword argument: %s" % key)
+                    setattr(self, key, kwargs.pop(key))
+                    
+        if len(kwargs) > 0:
+            raise TypeError("Unexpected keyword argument: " + kwargs.items()[0][0])
+        
