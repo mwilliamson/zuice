@@ -1,4 +1,8 @@
-import zuice.inspect
+from sets import Set
+
+import inspect
+
+import zuice.reflect
 
 class Injector(object):
     def __init__(self, bindings):
@@ -64,7 +68,7 @@ def inject_by_name(constructor):
 class _ZuiceConstructorByNamedKey(object):
     def __init__(self, method, keys, named_keys):
         self._named_keys = named_keys
-        self._args_spec = zuice.inspect.get_args_spec(method)
+        self._args_spec = zuice.reflect.get_args_spec(method)
         self._arg_names = [arg.name for arg in self._args_spec]
         
         self._keys = named_keys.copy()
@@ -136,14 +140,19 @@ def inject(key):
     return InjectedMember(key)
 
 class Injectable(object):
-    @inject_with(injector='injector')
+    @inject_with(___injector='injector')
     def __init__(self, **kwargs):
-        if 'injector' in kwargs:
-            injector = kwargs.pop('injector')
+        if '___injector' in kwargs:
+            injector = kwargs.pop('___injector')
         else:
             injector = None
+            
+        keys = Set()
+        for super_class in inspect.getmro(type(self)):
+            keys.update(super_class.__dict__.keys())
+        
         clazz = type(self)
-        for key in clazz.__dict__:
+        for key in keys:
             attr = getattr(clazz, key)
             if isinstance(attr, InjectedMember):
                 if injector is not None:

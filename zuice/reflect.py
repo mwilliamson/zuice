@@ -1,4 +1,4 @@
-inspect = __import__('inspect', {})
+import inspect
 
 class Argument(object):
     def __init__(self, name, has_default, default):

@@ -1,9 +1,9 @@
 from functools import wraps
 
-import zuice.inspect
+import zuice.reflect
 
 def auto_assign(constructor):
-    arg_specs = zuice.inspect.get_args_spec(constructor)
+    arg_specs = zuice.reflect.get_args_spec(constructor)
     arg_names = [arg.name for arg in arg_specs]
     @wraps(constructor)
     def new_constructor(self, *args, **kwargs):

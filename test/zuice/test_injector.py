@@ -408,6 +408,25 @@ def test_classes_that_inherit_from_injectable_can_be_passed_constructor_argument
     
     assert Foo(_tag_fetcher=tag_fetcher)._tag_fetcher is tag_fetcher
 
+def test_injectable_injects_attributes_of_sub_classes():
+    class Parent(Injectable):
+        _tag_fetcher = inject('tag_fetcher')
+        
+    class Child(Parent):
+        _blog_post_fetcher = inject('post_fetcher')
+
+    tag_fetcher = {'some': 'object'}
+    post_fetcher = {'another': 'object'}
+    
+    bindings = Bindings()
+    bindings.bind("tag_fetcher").to_instance(tag_fetcher)
+    bindings.bind("post_fetcher").to_instance(post_fetcher)
+    injector = Injector(bindings)
+    child = injector.get(Child)
+    
+    assert child._tag_fetcher is tag_fetcher
+    assert child._blog_post_fetcher is post_fetcher
+    
 def test_missing_constructor_arguments_in_injectable_raises_type_error():
     class Foo(Injectable):
         _tag_fetcher = inject("tag_fetcher")
