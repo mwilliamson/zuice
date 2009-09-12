@@ -228,3 +228,54 @@ can be used::
 
 When attempting to inject a :class:`PriceCalculator`, Zuice will lookup the name
 ``'price_fetcher'`` to inject the argument ``price_fetcher``.
+
+Injecting attributes
+^^^^^^^^^^^^^^^^^^^^
+
+Frequently, the arguments in a constructor are assigned to attributes. Therefore,
+the decorator :func:`~zuice.inject_attrs` can be used to inject attributes
+without having to assign them in the constructor::
+
+    from zuice import inject_attrs
+
+    class PriceCalculator(object):
+        @inject_attrs(_price_fetcher=PriceFetcher)
+        def __init__(self):
+            # Can use self._price_fetcher if we wanted to
+            pass
+    
+        def price_of(self, commodity, number):
+            price = self._price_fetcher.price_of(commodity)
+            return price * number
+
+The attributes are assigned before the constructor is used, so these attributes
+can be used in the constructor if necessary.
+
+While both :func:`~zuice.inject_with` and :func:`~zuice.inject_by_name` do not
+change the signature of the constructor they're used on, :func:`~zuice.inject_attrs`
+requires the injected attributes as keyword arguments. So, to manually construct
+a :class:`PriceCalculator`, we write::
+
+    price_fetcher = ...
+    price_calculator = PriceCalculator(_price_fetcher=price_fetcher)
+
+In the cases where no work is done in the constructor, we can use an alternative
+method to inject attributes. Firstly, we have :class:`PriceCalculator` inherit
+from :class:`~zuice.Injectable`. We then specify the attributes to be injected
+using :func:`~zuice.inject`::
+
+    from zuice import Injectable
+    from zuice import inject
+
+    class PriceCalculator(Injectable):
+        _price_fetcher = inject(PriceFetcher)
+    
+        def price_of(self, commodity, number):
+            price = self._price_fetcher.price_of(commodity)
+            return price * number
+
+We can manually construct a :class:`PriceCalculator` in the same manner
+as above::
+    
+    price_fetcher = ...
+    price_calculator = PriceCalculator(_price_fetcher=price_fetcher)
