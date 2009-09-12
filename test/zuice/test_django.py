@@ -1,10 +1,12 @@
 from nose.tools import assert_raises
 
-import zuice.django
-from zuice.django import url_to_class_builder
+from zuice.django import respond_with_builder
+from zuice.django import create_bindings
 from zuice.bindings import Bindings
 from zuice import NoSuchBindingException
 from zuice import inject_by_name
+from zuice import Injectable
+from zuice import inject
 
 class Url(object):
     def __init__(self, regex, view, kwargs, name):
@@ -13,8 +15,6 @@ class Url(object):
         self.kwargs = kwargs
         self.name = name
 
-zuice.django.django.conf.urls.defaults.url = lambda regex, view, kwargs, name: Url(regex, view, kwargs, name)
-
 class Response(object):
     def __init__(self, response):
         self._response = response
@@ -22,96 +22,98 @@ class Response(object):
     def render(self, request):
         return self._response
 
-class SimpleView(object):
-    def respond(self):
-        return Response("simple")
-
-def test_creates_url_function_that_uses_a_view_that_uses_the_passed_view():
-    url_to_class = url_to_class_builder(Bindings())
-    url = url_to_class("regex", SimpleView)
-    assert url.regex == "regex"
-    assert url.kwargs == {'view_class': SimpleView}
-    assert "simple" == url.view(request=None, **url.kwargs)
-    assert url.name is None
+def test_creates_view_function_that_delegates_to_the_passed_view_class():
+    class SimpleView(object):
+        def respond(self):
+            return Response("simple")
+            
+    respond_with = respond_with_builder(Bindings())
+    view = respond_with(SimpleView)
+    assert "simple" == view(None)
     
-def test_uses_passed_kwargs_when_creating_url():
-    url_to_class = url_to_class_builder(Bindings())
-    url = url_to_class("regex", SimpleView, {"foo": 1, "bar": 2})
-    assert url.kwargs == {'view_class': SimpleView, "foo": 1, "bar": 2}
-
-def test_uses_name_if_provided():
-    url_to_class = url_to_class_builder(Bindings())
-    url = url_to_class("regex", SimpleView, name="NAME")
-    assert url.regex == "regex"
-    assert url.kwargs == {'view_class': SimpleView}
-    assert "simple" == url.view(request=None, **url.kwargs)
-    assert url.name == "NAME"
-
-class RequestBindingView(object):
-    @inject_by_name
-    def respond(self, request):
-        self.request = request
-        return Response(request)
+def test_kwargs_are_passed_to_view():
+    class View(object):
+        def respond(self, year, month):
+            return Response({'year': year, 'month': month})
+    
+    year = "2000"
+    month = "09"
+    
+    respond_with = respond_with_builder(Bindings())
+    view = respond_with(View)
+    assert {'year': year, 'month': month} == view(None, year=year, month=month)
 
 def test_binds_request_to_injector_for_response():
+    class View(object):
+        def respond(self, request):
+            return Response(request)
+            
     request = {}
-    url_to_class = url_to_class_builder(Bindings())
-    url = url_to_class("regex", RequestBindingView)
-    assert url.view(request, **url.kwargs) is request
-
-class RequestInInitView(object):
-    @inject_by_name
-    def __init__(self, request):
-        pass
-        
-    def respond(self):
-        return None
+    respond_with = respond_with_builder(Bindings())
+    view = respond_with(View)
+    assert view(request) is request
 
 def test_does_not_bind_request_to_constructor_injector():
+    class View(object):
+        @inject_by_name
+        def __init__(self, request):
+            pass
+            
+        def respond(self):
+            return None
+            
     request = {}
-    url_to_class = url_to_class_builder(Bindings())
-    url = url_to_class("regex", RequestInInitView)
-    assert_raises(NoSuchBindingException, lambda: url.view(request, **url.kwargs))
-    
-class InterestingView(object):
-    @inject_by_name
-    def respond(self, foo, bar):
-        return Response((foo, bar))
-    
-def test_binds_view_kwargs_to_their_respective_names():
-    url_to_class = url_to_class_builder(Bindings())
-    url = url_to_class("regex", InterestingView)
-    response = url.view(None, foo=1, bar=2, **url.kwargs)
-    assert response == (1, 2)
-
-class VeryInterestingView(object):
-    @inject_by_name
-    def __init__(self, apple):
-        self._apple = apple
-        
-    @inject_by_name
-    def respond(self, foo, banana, bar):
-        return Response((self._apple, banana, foo, bar))
-
-class Apple(object):
-    pass
-    
-class Banana(object):
-    pass
+    respond_with = respond_with_builder(Bindings())
+    view = respond_with(View)
+    assert_raises(NoSuchBindingException, lambda: view(request))
 
 def test_uses_passed_bindings_in_constructor_and_respond():
-    apple = Apple()
-    banana = Banana()
+    class Request(object):
+        method = "POST"
+        POST = {"add_to_favs": "true"}
+        
+    def _request_to_post_parameters(request):
+        if request.method == "POST":
+            return request.POST
+        return None
+    
+    class View(Injectable):
+        _tag_fetcher = inject('tag_fetcher')
+    
+        def respond(self, post_parameters, year, month):
+            return Response({'tag_fetcher': self._tag_fetcher, 'post': post_parameters,
+                             'year': year, 'month': month})
+    
+    tag_fetcher = {}
     bindings = Bindings()
-    bindings.bind("apple").to_instance(apple)
-    bindings.bind("banana").to_instance(banana)
-    url_to_class = url_to_class_builder(bindings)
-    url = url_to_class("regex", VeryInterestingView)
-    response = url.view(None, foo=1, bar=2, **url.kwargs)
-    assert response == (apple, banana, 1, 2)
+    bindings.bind("tag_fetcher").to_instance(tag_fetcher)
+    bindings.bind("post_parameters").to_provider(_request_to_post_parameters)
+    respond_with = respond_with_builder(bindings)
+    
+    year = "2000"
+    month = "09"
+    
+    view = respond_with(View)
+    response = view(Request(), year=year, month=month)
+    assert response['year'] is year
+    assert response['month'] is month
+    assert response['tag_fetcher'] is tag_fetcher
+    assert response['post'] is Request.POST
+
+class test_passed_bindings_are_not_modified():
+    class SimpleView(object):
+        def respond(self):
+            return Response("simple")
+    
+    bindings = Bindings()
+    respond_with = respond_with_builder(bindings)
+    view = respond_with(SimpleView)
+    view(None)
+    
+    assert len(bindings._bindings) == 0
 
 def test_injected_database_saves_objects():
-    class Apple(object):
+    class Tag(object):
         def __init__(self):
             self.saved = False
         def save(self):
@@ -122,23 +124,49 @@ def test_injected_database_saves_objects():
         def __init__(self, database):
             self.database = database
             
-        def respond(self, apple):
-            self.database.save(apple)
+        def respond(self, tag):
+            self.database.save(tag)
             return Response("")
 
-    apple = Apple()
-    bindings = Bindings()
-    bindings.bind("apple").to_instance(apple)
+    tag = Tag()
+    assert not tag.saved
     
-    url_to_class = url_to_class_builder(bindings)
-    url = url_to_class("regex", SavingView)
-    url.view(None, foo=1, bar=2, **url.kwargs)
+    bindings = create_bindings()
+    bindings.bind("tag").to_instance(tag)
     
-    assert apple.saved
-
-class test_passed_bindings_are_not_modified():
-    bindings = Bindings()
-    url_to_class = url_to_class_builder(bindings)
+    respond_with = respond_with_builder(bindings)
+    view = respond_with(SavingView)
+    response = view(None)
     
-    assert len(bindings._bindings) == 0
+    assert tag.saved
+    
+def test_post_parameters_are_retrieved_from_django_request():
+    class Request(object):
+        method = "POST"
+        POST = {"add_to_favs": "true"}
+        
+    class View(object):
+        def respond(self, post_parameters):
+            return Response(post_parameters)
+    
+    respond_with = respond_with_builder(create_bindings())
+    
+    view = respond_with(View)
+    response = view(Request())
+    assert response is Request.POST
+    
+def test_post_parameters_are_none_if_request_method_is_not_post():
+    class Request(object):
+        method = "GET"
+        POST = {"add_to_favs": "true"}
+        
+    class View(object):
+        def respond(self, post_parameters):
+            return Response(post_parameters)
+    
+    respond_with = respond_with_builder(create_bindings())
+    
+    view = respond_with(View)
+    response = view(Request())
+    assert response is None
     
