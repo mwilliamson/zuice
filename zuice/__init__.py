@@ -111,7 +111,7 @@ class ZuiceConstructorForMembers(object):
         
         return _Arguments([], kwargs)
 
-def inject_members(**members):
+def inject_attrs(**members):
     def create_constructor(constructor):
         def assign_members(self, *args, **kwargs):
             for member in members:

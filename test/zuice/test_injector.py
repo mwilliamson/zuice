@@ -6,7 +6,7 @@ from zuice import Injector
 from zuice import NoSuchBindingException
 from zuice import inject_by_name
 from zuice import inject_with
-from zuice import inject_members
+from zuice import inject_attrs
 
 from zuice import inject
 from zuice import Injectable
@@ -345,9 +345,9 @@ def test_inject_with_wraps_functions():
     assert to_wrap_with_inject_with.__name__ == 'to_wrap_with_inject_with'
     assert to_wrap_with_inject_with.__doc__ == 'Docstring'
 
-def test_inject_members_assigns_the_given_attributes():
+def test_inject_attrs_assigns_the_given_attributes():
     class Foo(object):
-        @inject_members(_tag_fetcher='tag_fetcher')
+        @inject_attrs(_tag_fetcher='tag_fetcher')
         def __init__(self):
             pass
     
@@ -358,9 +358,9 @@ def test_inject_members_assigns_the_given_attributes():
     injector = Injector(bindings)
     assert injector.get(Foo)._tag_fetcher is tag_fetcher
     
-def test_inject_members_allows_constructor_arguments_to_be_passed_manually():
+def test_inject_attrs_allows_constructor_arguments_to_be_passed_manually():
     class Foo(object):
-        @inject_members(_tag_fetcher='tag_fetcher')
+        @inject_attrs(_tag_fetcher='tag_fetcher')
         def __init__(self):
             pass
     
@@ -368,9 +368,9 @@ def test_inject_members_allows_constructor_arguments_to_be_passed_manually():
     
     assert Foo(_tag_fetcher=tag_fetcher)._tag_fetcher is tag_fetcher
     
-def test_inject_members_manually_with_missing_args_raises_type_error():
+def test_inject_attrs_manually_with_missing_args_raises_type_error():
     class Foo(object):
-        @inject_members(_tag_fetcher='tag_fetcher', _blog_post_fetcher='post_fetcher')
+        @inject_attrs(_tag_fetcher='tag_fetcher', _blog_post_fetcher='post_fetcher')
         def __init__(self):
             pass
     
@@ -378,9 +378,9 @@ def test_inject_members_manually_with_missing_args_raises_type_error():
     
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher))
 
-def test_inject_members_injecting_manually_with_extra_members_raises_type_error():
+def test_inject_attrs_injecting_manually_with_extra_members_raises_type_error():
     class Foo(object):
-        @inject_members(_tag_fetcher='tag_fetcher')
+        @inject_attrs(_tag_fetcher='tag_fetcher')
         def __init__(self):
             pass
     
