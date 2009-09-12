@@ -2,12 +2,12 @@ Quick Start
 ===========
 
 Let's say that we have a :class:`PriceCalculator` class that works out the prices
-of various commodities using a :class:`PriceFetcher`::
+of various commodities using a :class:`DatabasePriceFetcher`::
 
     class PriceCalculator(object):
-        def __init__(self, price_fetcher):
-            self._price_fetcher = price_fetcher
-            
+        def __init__(self):
+            self._price_fetcher = DatabasePriceFetcher()
+    
         def price_of(self, commodity, number):
             price = self._price_fetcher.price_of(commodity)
             return price * number
@@ -15,8 +15,8 @@ of various commodities using a :class:`PriceFetcher`::
 So we could, for instance, find the price of 10 apples using 
 ``price_calculator.price_of(apples, 10)``.
 
-To get an instance of a :class:`PriceCalculator`, we need an :class:`~zuice.Injector`, which must be
-constructed with a :class:`~zuice.bindings.Bindings`::
+We can use an :class:`~zuice.Injector` to construct a :class:`PriceCalculator`
+for us since its constructor takes no arguments::
 
     from zuice import Injector
     from zuice.bindings import Bindings
@@ -24,27 +24,196 @@ constructed with a :class:`~zuice.bindings.Bindings`::
     bindings = Bindings()
     injector = Injector(bindings)
     price_calculator = injector.get(PriceCalculator)
+    
+    price = price_calculator.price_of(apples, 10)
 
-At the moment, this code will fail since :class:`PriceCalculator` is not injectable -- 
-Zuice does not know what to pass in for the argument ``price_fetcher``. If
-``PriceCalculator.__init__`` could be called with no arguments (other than ``self``)
-then the call ``injector.get(PriceCalculator)`` would have succeeded -- Zuice would
-simply call ``PriceCalculator()``.
+Since :class:`~zuice.Injector` can construct a :class:`PriceCalculator`, we
+say that the type :class:`PriceCalculator` is injectable.
 
-The easiest way of rectifying this is to bind the type directly to a given instance::
+However, we might decide that we want to pass in a :class:`DatabasePriceFetcher` instead
+of constructing it ourselves -- for instance, this makes the class more easily
+tested.
+
+We rewrite :class:`PriceCalcuator` as::
+
+    class PriceCalculator(object):
+        def __init__(self, price_fetcher):
+            self._price_fetcher = price_fetcher
+    
+        def price_of(self, commodity, number):
+            price = self._price_fetcher.price_of(commodity)
+            return price * number
+
+Zuice can no longer construct an instance of :class:`PriceCalculator` for us
+-- it does not know how to inject the argument ``price_fetcher``.
+
+Binding instances
+^^^^^^^^^^^^^^^^^
+
+The first solution is to manually construct an instance of :class:`PriceCalculator`,
+and bind this instance to the type::
+
+    from zuice import Injector
+    from zuice.bindings import Bindings
+
+    # Assume we've already constructed an instance of PriceCalculator as price_calculator
+    bindings = Bindings()
+    bindings.bind(PriceCalculator).to_instance(price_calculator)
+    injector = Injector(bindings)
+    
+    injector.get(PriceCalculator) # This returns the same instance of PriceCalculator i.e. price_calculator
+    
+However, having to construct instances for every type we want to be able to
+inject is tedious. Fortunately, we can instead tell Zuice how to inject the
+argument ``price_fetcher``.
+
+Binding types
+^^^^^^^^^^^^^
+
+We can tell Zuice what type ``price_fetcher`` is using the
+:func:`~zuice.inject_with` decorator::
+
+    from zuice import inject_with
+
+    class PriceCalculator(object):
+        @inject_with(DatabasePriceFetcher)
+        def __init__(self, price_fetcher):
+            self._price_fetcher = price_fetcher
+    
+        def price_of(self, commodity, number):
+            price = self._price_fetcher.price_of(commodity)
+            return price * number
+
+:func:`~zuice.inject_with` matches up the given types with the positional arguments.
+So, the first type listed is matched up with the first argument -- in this case,
+the first type, ``DatabasePriceFetcher``, is matched up with the first argument, ``price_fetcher``.
+If there was a second type listed, it would be matched up with the second argument,
+and so on.
+
+:func:`~zuice.inject_with` also allows the type of arguments to be specified
+using keyword arguments::
+
+    from zuice import inject_with
+
+    class PriceCalculator(object):
+        @inject_with(price_fetcher=DatabasePriceFetcher)
+        def __init__(self, price_fetcher):
+            self._price_fetcher = price_fetcher
+    
+        def price_of(self, commodity, number):
+            price = self._price_fetcher.price_of(commodity)
+            return price * number
+            
+Using :func:`~zuice.inject_with` in either fashion now allows us to inject
+:class:`PriceCalculator`, assuming that :class:`DatabasePriceFetcher` is already
+injectable::
 
     from zuice import Injector
     from zuice.bindings import Bindings
 
     bindings = Bindings()
-    bindings.bind(PriceCalculator).to_instance(price_calculator)
     injector = Injector(bindings)
     
-This means that ``injector.get(PriceCalculator)`` will always return the same
-instance.
+    injector.get(PriceCalculator) # This returns a new instance of PriceCalculator
+    
+This method has the disadvantage that we have now bound :class:`PriceCalculator`
+to a specific implementation. What if we wanted to use another class that
+behaves in the same manner as :class:`DatabasePriceFetcher`?
 
-The other method of making :class:`PriceCalculator` injectable is to mark its constructor
-as injectable::
+One solution is to define a generic type :class:`PriceFetcher`. This might be
+as simple as::
+
+    class PriceFetcher(object):
+        pass
+
+We then write :class:`PriceCalculator` as::
+
+    from zuice import inject_with
+
+    class PriceCalculator(object):
+        @inject_with(price_fetcher=PriceFetcher)
+        def __init__(self, price_fetcher):
+            self._price_fetcher = price_fetcher
+    
+        def price_of(self, commodity, number):
+            price = self._price_fetcher.price_of(commodity)
+            return price * number
+    
+Finally, to inject a :class:`PriceCalculator`::
+
+    from zuice import Injector
+    from zuice.bindings import Bindings
+
+    bindings = Bindings()
+    bindings.bind(PriceFetcher).to_type(DatabasePriceFetcher)
+    injector = Injector(bindings)
+    price_calculator = injector.get(PriceCalculator)
+    
+    price = price_calculator.price_of(apples, 10)
+
+Now, whenever a :class:`PriceFetcher` needs to be injected, Zuice will inject a
+:class:`DatabasePriceFetcher`. If we decide to use a different implementation,
+then we can simple change the binding in this one location.
+
+Binding names
+^^^^^^^^^^^^^
+
+In addition to binding types, Zuice allows names to be bound. For instance,
+we could write :class:`PriceCalculator` as::
+
+    from zuice import inject_with
+
+    class PriceCalculator(object):
+        @inject_with(price_fetcher='price_fetcher')
+        def __init__(self, price_fetcher):
+            self._price_fetcher = price_fetcher
+    
+        def price_of(self, commodity, number):
+            price = self._price_fetcher.price_of(commodity)
+            return price * number
+
+In order to inject the argument ``price_fetcher``, Zuice will now look up the string
+``'price_fetcher'``, rather than the type :class:`PriceFetcher`. We therefore
+need to bind ``'price_fetcher'``::
+
+    from zuice import Injector
+    from zuice.bindings import Bindings
+
+    bindings = Bindings()
+    bindings.bind('price_fetcher').to_type(PriceFetcher)
+    bindings.bind(PriceFetcher).to_type(DatabasePriceFetcher)
+    injector = Injector(bindings)
+    price_calculator = injector.get(PriceCalculator)
+    
+    price = price_calculator.price_of(apples, 10)
+
+So what happens when we try and inject :class:`PriceCalculator`? It uses
+the :func:`~zuice.inject_with` decorator to determine that the argument
+``price_fetcher`` must be injected using the name ``'price_fetcher'``. It then
+looks up in the bindings what name ``'price_fetcher'`` is bound to -- in this
+case, it is bound to :class:`PriceFetcher`.
+
+Zuice then checks what :class:`PriceFetcher` is bound to -- in this case,
+:class:`DatabasePriceFetcher`. Since :class:`DatabasePriceFetcher` is not bound
+to anything, Zuice will attempt to construct a new instance of :class:`DatabasePriceFetcher`.
+This instance is then passed in for the argument ``price_fetcher``.
+
+If we wanted, we could have bound the name ``'price_fetcher'`` directly to
+the type :class:`DatabaseFetcher`::
+
+    from zuice import Injector
+    from zuice.bindings import Bindings
+
+    bindings = Bindings()
+    bindings.bind('price_fetcher').to_type(DatabasePriceFetcher)
+    injector = Injector(bindings)
+    price_calculator = injector.get(PriceCalculator)
+    
+    price = price_calculator.price_of(apples, 10)
+    
+Note how, in this case, the name of the argument exactly matches the name of the
+binding we're using. For these cases, the decorator :func:`~zuice.inject_by_name`
+can be used::
 
     from zuice import inject_by_name
 
@@ -52,64 +221,10 @@ as injectable::
         @inject_by_name
         def __init__(self, price_fetcher):
             self._price_fetcher = price_fetcher
-            
-        def price_of(self, commodity, number):
-            price = self._price_fetcher.price_of(commodity)
-            return price * number
-
-However, attempting to get a :class:`PriceCalculator` will fail since Zuice still
-does not know what should be passed in as ``price_fetcher``.
-
-We need some way of binding the argument ``price_fetcher`` to the relevant class. In a
-statically typed language, we can use the type of the parameter to determine
-what needs to be injected. However, in a dynamically typed language such as
-Python, we need an alternative method.
-
-By using :func:`~zuice.inject_by_name`, we are indicating that this binding should
-be done by the name of each argument. We therefore need to bind the string
-``'price_fetcher'``::
-
-    from zuice import Injector
-    from zuice.bindings import Bindings
-
-    bindings = Bindings()
-    bindings.bind('price_fetcher').to_type(PriceFetcher)
-    injector = Injector(bindings)
-    price_calculator = injector.get(PriceCalculator)
-
-Each time Zuice finds an argument called ``price_fetcher``, it will attempt to
-inject :class:`PriceFetcher`. :class:`PriceFetcher` may already be injectable if its
-constructor takes no arguments. Otherwise, it can be made injectable in the same
-manner as :class:`PriceCalculator`. We could also bind the name directly to an instance::
-
-    from zuice import Injector
-    from zuice.bindings import Bindings
-
-    bindings = Bindings()
-    bindings.bind('price_fetcher').to_instance(price_fetcher)
-    injector = Injector(bindings)
-    price_calculator = injector.get(PriceCalculator)
-
-The second method is binding by key, using the decorator :func:`~zuice.inject_with`::
-
-    from zuice import inject_by_name
-
-    class PriceCalculator(object):
-        @inject_with(PriceFetcher)
-        def __init__(self, price_fetcher):
-            self._price_fetcher = price_fetcher
-            
-        def price_of(self, commodity, number):
-            price = self._price_fetcher.price_of(commodity)
-            return price * number
-
-We then need to make sure that the :class:`PriceFetcher` class is injectable.
     
-.. note:: A type is injectable if either:
+        def price_of(self, commodity, number):
+            price = self._price_fetcher.price_of(commodity)
+            return price * number
 
-        * The type's constructor has no required arguments, or
-        * The type has already been bound, or
-        * The type's constructor has had one of Zuice's injection decorators
-          applied to it; either :func:`~zuice.inject_by_name` or :func:`~zuice.inject_with`. Each of the
-          type constructor's arguments must also be injectable.
-
+When attempting to inject a :class:`PriceCalculator`, Zuice will lookup the name
+``'price_fetcher'`` to inject the argument ``price_fetcher``.
