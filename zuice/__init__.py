@@ -4,6 +4,9 @@ import inspect
 
 import zuice.reflect
 
+__all__ = ['Injector', 'inject_by_name', 'inject_with', 'inject_attrs',
+           'Injectable', 'inject']
+
 class Injector(object):
     def __init__(self, bindings):
         self._bindings = bindings.copy()
