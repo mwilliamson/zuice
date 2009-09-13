@@ -58,7 +58,7 @@
         
             bindings.bind('uuid_generator').to_provider(lambda: uuid.uuid4)
             
-        In this case, there is a convenience method, :method:`to_instance`, that
+        In this case, there is a convenience method, :func:`to_instance`, that
         has the same effect.
         
         Any arguments the provider has will be injected. Unless an injection
