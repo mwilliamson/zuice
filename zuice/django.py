@@ -1,5 +1,3 @@
-django = __import__("django.conf.urls.defaults", {})
-
 from zuice import Injector
 from zuice.bindings import Bindings
 

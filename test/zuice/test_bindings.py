@@ -1,4 +1,3 @@
-from nose.tools import assert_equals
 from nose.tools import assert_raises
 
 from zuice.bindings import AlreadyBoundException
