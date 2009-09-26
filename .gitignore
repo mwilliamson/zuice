@@ -1,2 +1,7 @@
 *.pyc
 doc/_build
+MANIFEST
+dist
+bin
+include
+lib
