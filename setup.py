@@ -8,5 +8,4 @@ setup(
     author_email='mike@zwobble.org',
     url='http://gitorious.org/zuice',
     packages=['zuice'],
-    data_files={'doc': ['doc/index.rst']},
 )
