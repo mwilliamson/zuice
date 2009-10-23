@@ -34,4 +34,5 @@ def create_bindings():
     bindings = Bindings()
     bindings.bind('database').to_type(Database)
     bindings.bind("post_parameters").to_provider(_request_to_post_parameters)
+    bindings.bind("user").to_provider(lambda request: request.user)
     return bindings

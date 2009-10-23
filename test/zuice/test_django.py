@@ -170,3 +170,20 @@ def test_post_parameters_are_none_if_request_method_is_not_post():
     response = view(Request())
     assert response is None
     
+def test_user_is_bound():
+    user = {}
+    
+    class Request(object):
+        def __init__(self):
+            self.user = user
+        
+    class View(object):
+        def respond(self, user):
+            return Response(user)
+    
+    respond_with = respond_with_builder(create_bindings())
+    
+    view = respond_with(View)
+    response = view(Request())
+    assert response is user
+    
