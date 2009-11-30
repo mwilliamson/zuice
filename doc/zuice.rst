@@ -28,11 +28,6 @@
         Finally, attempt to call the constructor with no arguments. If this
         fails, :class:`~zuice.NoSuchBindingException` is raised.
     
-    .. method:: get_from_name(key)
-    
-        If *key* has been bound, then use the appropriate binding.
-        Otherwise, :class:`~zuice.NoSuchBindingException` is raised.
-    
     .. method:: call(function)
     
         Try to call *function* by injecting its arguments. If no injection decorator
