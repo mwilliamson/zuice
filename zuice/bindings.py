@@ -3,21 +3,6 @@ class Bindings(object):
         self._bindings = {}
     
     def bind(self, key):
-        if isinstance(key, basestring):
-            return self.bind_name(key)
-        if isinstance(key, type):
-            return self.bind_type(key)
-        raise TypeError("key must be of type basestring or type")
-    
-    def bind_type(self, type_to_bind):
-        return self._type_safe_bind(type, type_to_bind)
-    
-    def bind_name(self, name):
-        return self._type_safe_bind(basestring, name)
-    
-    def _type_safe_bind(self, type, key):
-        if not isinstance(key, type):
-            raise TypeError("key must be of type %s" % type)
         if key in self:
             raise AlreadyBoundException("Cannot rebind key")
         return Binder(key, self._bindings)
@@ -41,21 +26,14 @@ class Binder(object):
     
     def to_instance(self, instance):
         self.to_provider(lambda: instance)
-        
-    def to_type(self, type_to_get):
-        if type_to_get is self._key:
-            raise TypeError("Cannot bind a type to itself")
-        if not isinstance(type_to_get, type):
-            raise TypeError("to_type can only bind to types")
-        self.to_provider(lambda injector: injector.get_from_type(type_to_get))
     
-    def to_name(self, name):
-        if name == self._key:
-            raise TypeError("Cannot bind a name to itself")
-        if not isinstance(name, basestring):
-            raise TypeError("to_name can only bind to strings")
-        self.to_provider(lambda injector: injector.get_from_name(name))
-        
+    def to_key(self, key):
+        if key is self._key:
+            raise TypeError("Cannot bind a key to itself")
+        self.to_provider(lambda injector: injector.get(key))
+    
+    def to_type(self, key):
+        return self.to_key(key)
     
     def to_provider(self, provider):
         if self._bound:

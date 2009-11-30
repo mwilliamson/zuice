@@ -11,7 +11,7 @@ def respond_with_builder(bindings):
             bindings_for_response = bindings.copy()
             bindings_for_response.bind('request').to_instance(request)
             for item in kwargs.iteritems():
-                bindings_for_response.bind_name(item[0]).to_instance(item[1])
+                bindings_for_response.bind(item[0]).to_instance(item[1])
             
             response_injector = Injector(bindings_for_response)
             response = response_injector.call(view.respond)

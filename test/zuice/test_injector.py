@@ -22,7 +22,7 @@ class Banana(object):
 def test_bind_type_to_instance():
     apple = Apple()
     bindings = Bindings()
-    bindings.bind_type(Apple).to_instance(apple)
+    bindings.bind(Apple).to_instance(apple)
     
     injector = Injector(bindings)
     assert injector.get_from_type(Apple) is apple
@@ -30,15 +30,15 @@ def test_bind_type_to_instance():
 def test_bind_name_to_instance():
     apple = Apple()
     bindings = Bindings()
-    bindings.bind_name("apple").to_instance(apple)
+    bindings.bind("apple").to_instance(apple)
     
     injector = Injector(bindings)
-    assert injector.get_from_name("apple") is apple
+    assert injector.get("apple") is apple
     
 def test_bind_type_to_provider():
     apple = Apple()
     bindings = Bindings()
-    bindings.bind_type(Apple).to_provider(lambda: apple)
+    bindings.bind(Apple).to_provider(lambda: apple)
     
     injector = Injector(bindings)
     assert injector.get_from_type(Apple) is apple
@@ -47,8 +47,8 @@ def test_get_can_get_by_type_and_name():
     apple_by_type = Apple()
     apple_by_name = Apple()
     bindings = Bindings()
-    bindings.bind_type(Apple).to_instance(apple_by_type)
-    bindings.bind_name("apple").to_instance(apple_by_name)
+    bindings.bind(Apple).to_instance(apple_by_type)
+    bindings.bind("apple").to_instance(apple_by_name)
     
     injector = Injector(bindings)
     assert injector.get(Apple) is apple_by_type
@@ -59,16 +59,6 @@ def test_get_from_type_raises_exception_if_key_is_not_type():
     bindings.bind("apple").to_instance(Apple())
     injector = Injector(bindings)
     assert_raises(TypeError, lambda: injector.get_from_type("apple"))
-    
-def test_get_from_name_raises_exception_if_key_is_not_of_correct_type():
-    bindings = Bindings()
-    bindings.bind(Apple).to_instance(Apple())
-    injector = Injector(bindings)
-    assert_raises(TypeError, lambda: injector.get_from_name(Apple))
-    
-def test_get_raises_exception_if_key_is_not_of_correct_type():
-    injector = Injector(Bindings())
-    assert_raises(NoSuchBindingException, lambda: injector.get(22))
     
 def test_bind_can_bind_names_and_types():
     apple_by_type = Apple()
@@ -81,7 +71,6 @@ def test_bind_can_bind_names_and_types():
     assert injector.get(Apple) is apple_by_type
     assert injector.get_from_type(Apple) is apple_by_type
     assert injector.get("apple") is apple_by_name
-    assert injector.get_from_name("apple") is apple_by_name
 
 def test_get_from_type_throws_exception_if_no_such_binding_exists():
     class Donkey(object):
@@ -93,28 +82,28 @@ def test_get_from_type_throws_exception_if_no_such_binding_exists():
     
     donkey = Donkey(4)
     bindings = Bindings()
-    bindings.bind_type(Donkey).to_provider(lambda: donkey)
+    bindings.bind(Donkey).to_provider(lambda: donkey)
     
     injector = Injector(bindings)
     assert injector.get_from_type(Donkey) is donkey
     
-def test_get_from_name_throws_exception_if_no_such_binding_exists():
+def test_get_raises_exception_if_no_such_binding_exists():
     injector = Injector(Bindings())
-    assert_raises(NoSuchBindingException, lambda: injector.get_from_name("apple"))
+    assert_raises(NoSuchBindingException, lambda: injector.get("apple"))
     
     apple = Apple()
     bindings = Bindings()
-    bindings.bind_name("apple").to_provider(lambda: apple)
+    bindings.bind("apple").to_provider(lambda: apple)
     
     injector = Injector(bindings)
-    assert injector.get_from_name("apple") is apple
-    assert_raises(NoSuchBindingException, lambda: injector.get_from_name("banana"))
+    assert injector.get("apple") is apple
+    assert_raises(NoSuchBindingException, lambda: injector.get("banana"))
 
 def test_changing_bindings_after_creating_injector_does_not_change_injector():
     bindings = Bindings()
     injector = Injector(bindings)
     bindings.bind("apple").to_instance(Apple())
-    assert_raises(NoSuchBindingException, lambda: injector.get_from_name("apple"))
+    assert_raises(NoSuchBindingException, lambda: injector.get("apple"))
         
 def test_can_inject_constructor_arguments_by_name():
     class BasketByName(object):
@@ -250,7 +239,7 @@ def test_can_bind_to_names():
     apple_to_inject = Apple()
     bindings = Bindings()
     bindings.bind("apple").to_instance(apple_to_inject)
-    bindings.bind("another_apple").to_name("apple")
+    bindings.bind("another_apple").to_key("apple")
     
     injector = Injector(bindings)
     assert injector.get("another_apple") is apple_to_inject

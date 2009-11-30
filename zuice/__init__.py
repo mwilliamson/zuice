@@ -14,11 +14,9 @@ class Injector(object):
         self._bindings.bind(Injector).to_instance(self)
     
     def get(self, key):
-        if isinstance(key, basestring):
-            return self.get_from_name(key)
         if isinstance(key, type):
             return self.get_from_type(key)
-        raise NoSuchBindingException(key)
+        return self._get_from_bindings(key)
     
     def get_from_type(self, type_to_get):
         if not isinstance(type_to_get, type):
@@ -31,11 +29,6 @@ class Injector(object):
             return type_to_get()
         except TypeError:
             raise NoSuchBindingException(type_to_get)
-        
-    def get_from_name(self, name):
-        if not isinstance(name, basestring):
-            raise TypeError
-        return self._get_from_bindings(name)
     
     def call(self, method):
         if hasattr(method, 'zuice'):
