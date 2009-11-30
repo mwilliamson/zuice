@@ -12,13 +12,14 @@
     
     .. method:: get(key)
     
-        If key is a :class:`type`, this is the same as calling ``get_from_type(key)``.
-        If key is a :class:`basestring`, this is the same as calling ``get_from_name(key)``.
-        Otherwise, :class:`~zuice.NoSuchBindingException` is raised.
-    
+        If *key* is a :class:`type`, this is the same as calling ``get_from_type(key)``.
+        If *key* is not a :class:`type`, the injector will look up the key in its
+        bindings and use the bound provider. If there is no bound provider,
+        :class:`~zuice.NoSuchBindingException` is raised.
+        
     .. method:: get_from_type(key)
     
-        If key has been bound, then use the appropriate binding.
+        If *key* has been bound, then use the appropriate binding.
         
         Otherwise, if an injection decorator has been applied to
         ``key.__init__``, attempt to construct the passed type by injecting
@@ -29,12 +30,12 @@
     
     .. method:: get_from_name(key)
     
-        If key has been bound, then use the appropriate binding.
+        If *key* has been bound, then use the appropriate binding.
         Otherwise, :class:`~zuice.NoSuchBindingException` is raised.
     
     .. method:: call(function)
     
-        Try to call function by injecting its arguments. If no injection decorator
+        Try to call *function* by injecting its arguments. If no injection decorator
         has been applied to the function, attempt to inject the arguments by name.
         Otherwise, inject its arguments in the manner specified by the decorator.
 
