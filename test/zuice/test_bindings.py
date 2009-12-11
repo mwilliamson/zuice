@@ -1,4 +1,5 @@
 from nose.tools import assert_raises
+from nose.tools import assert_equals
 
 from zuice.bindings import AlreadyBoundException
 from zuice.bindings import Bindings
@@ -32,3 +33,13 @@ def test_cannot_bind_key_to_itself():
     bindings = Bindings()
     assert_raises(TypeError, lambda: bindings.bind("apple").to_key("apple"))
 
+def test_can_update_bindings_with_more_bindings():
+    bindings = Bindings()
+    bindings.bind("maximum_threads").to_instance(5)
+    
+    new_bindings = Bindings()
+    new_bindings.bind("minimum_threads").to_instance(2)
+    
+    bindings.update(new_bindings)
+    assert_equals(bindings["maximum_threads"](), 5)
+    assert_equals(bindings["minimum_threads"](), 2)

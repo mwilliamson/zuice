@@ -4,14 +4,17 @@ class Bindings(object):
     
     def bind(self, key):
         if key in self:
-            raise AlreadyBoundException("Cannot rebind key")
+            raise AlreadyBoundException("Cannot rebind key: %s" % key)
         return Binder(key, self._bindings)
     
     def copy(self):
         copy = Bindings()
         copy._bindings = self._bindings.copy()
         return copy
-        
+    
+    def update(self, bindings):
+        self._bindings.update(bindings._bindings)
+    
     def __contains__(self, key):
         return key in self._bindings
         

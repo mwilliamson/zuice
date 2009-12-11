@@ -8,8 +8,13 @@ __all__ = ['Injector', 'inject_by_name', 'inject_with', 'inject_attrs',
            'Injectable', 'inject']
 
 class Injector(object):
-    def __init__(self, bindings):
-        self._bindings = bindings.copy()
+    def __init__(self, bindings, base_injector=None):
+        if base_injector is None:
+            self._original_bindings = bindings
+        else:
+            self._original_bindings = base_injector._original_bindings.copy()
+            self._original_bindings.update(bindings)
+        self._bindings = self._original_bindings.copy()
         self._bindings.bind('injector').to_instance(self)
         self._bindings.bind(Injector).to_instance(self)
     
