@@ -1,7 +1,15 @@
+from datetime import datetime
+
+from django import template
+
 from nose.tools import assert_raises
+from nose.tools import assert_equals
+from funk import with_context
+from funk import expects
 
 from zuice.django import respond_with_builder
 from zuice.django import create_bindings
+from zuice.django import injectable_tag
 from zuice.bindings import Bindings
 from zuice import NoSuchBindingException
 from zuice import inject_by_name
@@ -186,4 +194,41 @@ def test_user_is_bound():
     view = respond_with(View)
     response = view(Request())
     assert response is user
+
+@with_context    
+def test_injectable_tags_use_injector_from_context(context):
+    class FormattedDateNode(template.Node):
+        def __init__(self, date_variable_name):
+            self.date_variable_name = date_variable_name
+            
+        def render(self, context, date_formatter):
+            date = template.Variable(self.date_variable_name).resolve(context)
+            return date_formatter.format(date)
     
+    @injectable_tag
+    def format_date(parser, token):
+        tag_name, date_variable_name = token.split_contents()
+        return FormattedDateNode(date_variable_name)
+        
+    date_formatter = context.mock()
+    token = context.mock()
+    date = datetime(2009, 12, 11)
+    date_variable_name = "date"
+    formatted_string = "11th December 2009"
+    
+    bindings = Bindings()
+    bindings.bind("date_formatter").to_instance(date_formatter)
+    context = {"injector": Injector(bindings), date_variable_name: date}
+    
+    expects(token).split_contents().returns(["format_date", date_variable_name])
+    expects(date_formatter).format(date).returns(formatted_string)
+    
+    node = format_date(None, token)
+    assert_equals(node.render(context), formatted_string)
+
+def test_injectable_tags_retain_their_name():
+    @injectable_tag
+    def format_date(parser, token):
+        pass
+        
+    assert_equals("format_date", format_date.__name__)

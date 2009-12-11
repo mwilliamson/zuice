@@ -1,3 +1,8 @@
+django = __import__("django.template", {})
+template = django.template
+
+from functools import wraps
+
 from zuice import Injector
 from zuice.bindings import Bindings
 
@@ -36,3 +41,21 @@ def create_bindings():
     bindings.bind("post_parameters").to_provider(_request_to_post_parameters)
     bindings.bind("user").to_provider(lambda request: request.user)
     return bindings
+
+class InjectedNode(template.Node):
+    def __init__(self, base_node, bindings_variable):
+        self._base_node = base_node
+        self._bindings_variable = bindings_variable
+        
+    def render(self, context):
+        bindings = self._bindings_variable.resolve(context).copy()
+        bindings.bind("context").to_instance(context)
+        injector = Injector(bindings)
+        return injector.call(self._base_node.render)
+
+def injectable_tag(function):
+    @wraps(function)
+    def tag_function(*args, **kwargs):
+        return InjectedNode(function(*args, **kwargs), template.Variable("bindings"))
+        
+    return tag_function
