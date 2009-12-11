@@ -13,6 +13,9 @@ class Bindings(object):
         return copy
     
     def update(self, bindings):
+        for key in bindings._bindings:
+            if key in self._bindings:
+                raise AlreadyBoundException("Key already bound: %s" % key)
         self._bindings.update(bindings._bindings)
     
     def __contains__(self, key):

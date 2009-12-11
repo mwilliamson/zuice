@@ -43,3 +43,12 @@ def test_can_update_bindings_with_more_bindings():
     bindings.update(new_bindings)
     assert_equals(bindings["maximum_threads"](), 5)
     assert_equals(bindings["minimum_threads"](), 2)
+
+def test_cannot_override_existing_bindings():
+    bindings = Bindings()
+    bindings.bind("maximum_threads").to_instance(5)
+    
+    new_bindings = Bindings()
+    new_bindings.bind("maximum_threads").to_instance(2)
+    
+    assert_raises(AlreadyBoundException, lambda: bindings.update(new_bindings))
