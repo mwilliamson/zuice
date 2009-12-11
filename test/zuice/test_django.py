@@ -6,10 +6,14 @@ from nose.tools import assert_raises
 from nose.tools import assert_equals
 from funk import with_context
 from funk import expects
+from funk import allows
+from funk import expects_call
+from funk.matchers import Matcher
 
 from zuice.django import respond_with_builder
 from zuice.django import create_bindings
 from zuice.django import injectable_tag
+from zuice.django import register_injectable_simple_tag
 from zuice.bindings import Bindings
 from zuice import Injector
 from zuice import NoSuchBindingException
@@ -197,7 +201,7 @@ def test_user_is_bound():
     assert response is user
 
 @with_context    
-def test_injectable_tags_use_injector_from_context(context):
+def test_injectable_tags_use_injector_from_template_context(context):
     class FormattedDateNode(template.Node):
         def __init__(self, date_variable_name):
             self.date_variable_name = date_variable_name
@@ -219,13 +223,13 @@ def test_injectable_tags_use_injector_from_context(context):
     
     bindings = Bindings()
     bindings.bind("date_formatter").to_instance(date_formatter)
-    context = {"injector": Injector(bindings), date_variable_name: date}
+    template_context = {"injector": Injector(bindings), date_variable_name: date}
     
     expects(token).split_contents().returns(["format_date", date_variable_name])
     expects(date_formatter).format(date).returns(formatted_string)
     
     node = format_date(None, token)
-    assert_equals(node.render(context), formatted_string)
+    assert_equals(node.render(template_context), formatted_string)
 
 def test_injectable_tags_retain_their_name():
     @injectable_tag
@@ -233,3 +237,40 @@ def test_injectable_tags_retain_their_name():
         pass
         
     assert_equals("format_date", format_date.__name__)
+
+@with_context
+def test_injectable_simple_tags_use_injector_from_template_context(context):
+    class IsInjectedFormatDateTag(Matcher):
+        def matches(self, value, mismatch_output):
+            token = context.mock()
+            date_formatter = context.mock()
+            
+            date = datetime(2009, 12, 11)
+            date_variable_name = "date"
+            formatted_string = "11th December 2009"
+            
+            bindings = Bindings()
+            bindings.bind("date_formatter").to_instance(date_formatter)
+            template_context = {"injector": Injector(bindings), date_variable_name: date}
+            
+            expects(date_formatter).format(date).returns(formatted_string)
+            expects(token).split_contents().returns(["format_date", date_variable_name])
+            
+            return value(None, token).render(template_context) == formatted_string
+            
+        def __str__(self):
+            return "<injected version of format date tag>"
+    
+    class FormatDateTag(Injectable):
+        _date_formatter = inject("date_formatter")
+        
+        def render(self, date):
+            return self._date_formatter.format(date)
+    
+    library = context.mock()
+    tag_register = context.mock()
+    
+    expects(library).tag("format_date").returns(tag_register)
+    expects_call(tag_register).with_args(IsInjectedFormatDateTag())
+    
+    register_injectable_simple_tag(library, "format_date", FormatDateTag)

@@ -60,3 +60,21 @@ def injectable_tag(function):
         return InjectedNode(function(*args, **kwargs), template.Variable("injector"))
         
     return tag_function
+
+class InjectedSimpleNode(template.Node):
+    def __init__(self, tag_key, variables):
+        self._tag_key = tag_key
+        self._variables = variables
+        
+    def render(self, context, injector):
+        tag = injector.get(self._tag_key)
+        variable_values = [variable.resolve(context) for variable in self._variables]
+        return tag.render(*variable_values)
+
+def register_injectable_simple_tag(library, name, tag):
+    @library.tag(name)
+    @injectable_tag
+    def tag_function(parser, token):
+        variable_names = token.split_contents()[1:]
+        variables = [template.Variable(name) for name in variable_names]
+        return InjectedSimpleNode(tag, variables)
