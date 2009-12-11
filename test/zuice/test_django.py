@@ -11,6 +11,7 @@ from zuice.django import respond_with_builder
 from zuice.django import create_bindings
 from zuice.django import injectable_tag
 from zuice.bindings import Bindings
+from zuice import Injector
 from zuice import NoSuchBindingException
 from zuice import inject_by_name
 from zuice import Injectable

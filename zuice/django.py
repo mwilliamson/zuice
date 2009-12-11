@@ -43,19 +43,20 @@ def create_bindings():
     return bindings
 
 class InjectedNode(template.Node):
-    def __init__(self, base_node, bindings_variable):
+    def __init__(self, base_node, injector_variable):
         self._base_node = base_node
-        self._bindings_variable = bindings_variable
+        self._injector_variable = injector_variable
         
     def render(self, context):
-        bindings = self._bindings_variable.resolve(context).copy()
+        base_injector = self._injector_variable.resolve(context)
+        bindings = Bindings()
         bindings.bind("context").to_instance(context)
-        injector = Injector(bindings)
+        injector = Injector(bindings, base_injector)
         return injector.call(self._base_node.render)
 
 def injectable_tag(function):
     @wraps(function)
     def tag_function(*args, **kwargs):
-        return InjectedNode(function(*args, **kwargs), template.Variable("bindings"))
+        return InjectedNode(function(*args, **kwargs), template.Variable("injector"))
         
     return tag_function
