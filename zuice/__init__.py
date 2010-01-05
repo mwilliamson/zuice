@@ -3,9 +3,10 @@ from sets import Set
 import inspect
 
 import zuice.reflect
+from zuice.util import factory
 
 __all__ = ['Injector', 'inject_by_name', 'inject_with', 'inject_attrs',
-           'Injectable', 'inject']
+           'Injectable', 'inject', "factory"]
 
 class Injector(object):
     def __init__(self, bindings, base_injector=None):
