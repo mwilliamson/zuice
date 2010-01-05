@@ -1,6 +1,6 @@
 from nose.tools import assert_equals
 
-from zuice.util import factory
+from zuice.util import create_factory
 
 def test_factory_for_a_class_passes_all_calls_to_build_to_that_classes_constructor():
     class Message(object):
@@ -8,7 +8,7 @@ def test_factory_for_a_class_passes_all_calls_to_build_to_that_classes_construct
             self.text = text
             self.severity = severity
             
-    message_factory = factory(Message)
+    message_factory = create_factory(Message)
     message_text = "Comment added successfully"
     severity = "INFO"
     message = message_factory.build(message_text, severity=severity)
