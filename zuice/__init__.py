@@ -31,10 +31,9 @@ class Injector(object):
             return self._get_from_bindings(type_to_get)
         if hasattr(type_to_get.__init__, 'zuice'):
             return self._inject(type_to_get, type_to_get.__init__.zuice)
-        try:
+        if type_to_get.__init__ is object.__init__ or len(zuice.reflect.get_args_spec(type_to_get.__init__)) == 0:
             return type_to_get()
-        except TypeError:
-            raise NoSuchBindingException(type_to_get)
+        raise NoSuchBindingException(type_to_get)
     
     def call(self, method):
         if hasattr(method, 'zuice'):
