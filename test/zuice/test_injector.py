@@ -406,6 +406,31 @@ def test_classes_that_inherit_from_injectable_can_be_passed_constructor_argument
     assert view._tag_fetcher is tag_fetcher
     assert view._post_fetcher is post_fetcher
 
+def test_injecting_overspecified_arguments_to_injectable_raises_exception():
+    class View(Injectable):
+        _tag_fetcher = inject("tag_fetcher")
+    
+    tag_fetcher = {'some': 'object'}
+    
+    try:
+        view = View(tag_fetcher, _tag_fetcher=tag_fetcher)
+        assert False
+    except TypeError, e:
+        assert_equals(str(e), "Got multiple values for keyword argument '_tag_fetcher'")
+
+def test_injecting_too_many_positional_arguments_to_injectable_raises_exception():
+    class View(Injectable):
+        _tag_fetcher = inject("tag_fetcher")
+    
+    tag_fetcher = {'some': 'object'}
+    post_fetcher = {'another': 'object'}
+    
+    try:
+        view = View(tag_fetcher, post_fetcher)
+        assert False
+    except TypeError, e:
+        assert_equals(str(e), "View requires 1 injected member(s) (2 given)")
+
 def test_injectable_injects_attributes_of_sub_classes():
     class Parent(Injectable):
         _tag_fetcher = inject('tag_fetcher')

@@ -158,11 +158,13 @@ class Injectable(object):
             for key, attr in attrs:
                 setattr(self, key, attr.inject(injector))
         else:
+            if len(args) > len(attrs):
+                raise TypeError("%s requires %s injected member(s) (%s given)" % (type(self).__name__, len(attrs), len(args)))
             attrs.sort(key=lambda (key, attr): attr._ordering)
             for index, (key, attr) in enumerate(attrs):
                 if index < len(args):
-                    #~ if key in kwargs:
-                        #~ raise TypeError("Got multiple values for argument %s" % key)
+                    if key in kwargs:
+                        raise TypeError("Got multiple values for keyword argument '%s'" % key)
                     setattr(self, key, args[index])
                 elif key in kwargs:
                     setattr(self, key, kwargs.pop(key))
