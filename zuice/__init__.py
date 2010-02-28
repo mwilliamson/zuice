@@ -1,6 +1,7 @@
 from sets import Set
 
 import inspect
+import itertools
 
 import zuice.reflect
 from zuice.util import factory
@@ -131,8 +132,11 @@ def inject_attrs(**members):
     return create_constructor
 
 class InjectedMember(object):
+    _counter = itertools.count()
+    
     def __init__(self, key):
         self._key = key
+        self._ordering = self._counter.next()
         
     def inject(self, injector):
         return injector.get(self._key)
@@ -142,27 +146,29 @@ def inject(key):
 
 class Injectable(object):
     @inject_with(___injector='injector')
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
+        attrs = []
+        for super_class in inspect.getmro(type(self)):
+            for key, attr in super_class.__dict__.items():
+                if isinstance(attr, InjectedMember):
+                    attrs.append((key, attr))
+            
         if '___injector' in kwargs:
             injector = kwargs.pop('___injector')
+            for key, attr in attrs:
+                setattr(self, key, attr.inject(injector))
         else:
-            injector = None
-            
-        keys = Set()
-        for super_class in inspect.getmro(type(self)):
-            keys.update(super_class.__dict__.keys())
-        
-        clazz = type(self)
-        for key in keys:
-            attr = getattr(clazz, key)
-            if isinstance(attr, InjectedMember):
-                if injector is not None:
-                    setattr(self, key, attr.inject(injector))
-                else:
-                    if key not in kwargs:
-                        raise TypeError("Missing keyword argument: %s" % key)
+            attrs.sort(key=lambda (key, attr): attr._ordering)
+            for index, (key, attr) in enumerate(attrs):
+                if index < len(args):
+                    #~ if key in kwargs:
+                        #~ raise TypeError("Got multiple values for argument %s" % key)
+                    setattr(self, key, args[index])
+                elif key in kwargs:
                     setattr(self, key, kwargs.pop(key))
-                    
+                else:
+                    raise TypeError("Missing keyword argument: %s" % key)
+        
         if len(kwargs) > 0:
             raise TypeError("Unexpected keyword argument: " + kwargs.items()[0][0])
         

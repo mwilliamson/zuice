@@ -386,13 +386,25 @@ def test_classes_that_inherit_from_injectable_have_members_injected():
     injector = Injector(bindings)
     assert injector.get(Foo)._tag_fetcher is tag_fetcher
 
-def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually():
+def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually_by_name():
     class Foo(Injectable):
         _tag_fetcher = inject("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
     
     assert Foo(_tag_fetcher=tag_fetcher)._tag_fetcher is tag_fetcher
+
+def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually_by_position():
+    class View(Injectable):
+        _tag_fetcher = inject("tag_fetcher")
+        _post_fetcher = inject("post_fetcher")
+    
+    tag_fetcher = {'some': 'object'}
+    post_fetcher = {'another': 'object'}
+    
+    view = View(tag_fetcher, post_fetcher)
+    assert view._tag_fetcher is tag_fetcher
+    assert view._post_fetcher is post_fetcher
 
 def test_injectable_injects_attributes_of_sub_classes():
     class Parent(Injectable):
@@ -430,14 +442,6 @@ def test_injectable_injecting_manually_with_extra_members_raises_type_error():
     post_fetcher = {'another': 'object'}
     
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher, _post_fetcher=post_fetcher))
-
-def test_injectable_injecting_positional_arguments_raises_type_error():
-    class Foo(Injectable):
-        _tag_fetcher = inject('tag_fetcher')
-        
-    tag_fetcher = {'some': 'object'}
-    
-    assert_raises(TypeError, lambda: Foo(tag_fetcher))
     
 def test_can_extend_injectors_with_further_bindings():
     base_bindings = Bindings()
