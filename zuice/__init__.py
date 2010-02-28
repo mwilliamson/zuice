@@ -148,10 +148,13 @@ class Injectable(object):
     @inject_with(___injector='injector')
     def __init__(self, *args, **kwargs):
         attrs = []
-        for super_class in inspect.getmro(type(self))[::-1]:
+        keys = Set()
+        for super_class in inspect.getmro(type(self)):
             for key, attr in super_class.__dict__.items():
-                if isinstance(attr, InjectedMember):
-                    attrs.append((key, attr))
+                if key not in keys:
+                    if isinstance(attr, InjectedMember):
+                        keys.add(key)
+                        attrs.append((key, attr))
             
         if '___injector' in kwargs:
             injector = kwargs.pop('___injector')

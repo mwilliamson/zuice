@@ -457,11 +457,9 @@ def test_subclassing_injectable_objects_allows_injected_attributes_to_be_overwri
     class Child(Parent):
         _fetcher = inject('post_fetcher')
 
-    tag_fetcher = {'some': 'object'}
     post_fetcher = {'another': 'object'}
     
     bindings = Bindings()
-    bindings.bind("tag_fetcher").to_instance(tag_fetcher)
     bindings.bind("post_fetcher").to_instance(post_fetcher)
     injector = Injector(bindings)
     child = injector.get(Child)
