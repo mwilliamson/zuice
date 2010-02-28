@@ -148,7 +148,7 @@ class Injectable(object):
     @inject_with(___injector='injector')
     def __init__(self, *args, **kwargs):
         attrs = []
-        for super_class in inspect.getmro(type(self)):
+        for super_class in inspect.getmro(type(self))[::-1]:
             for key, attr in super_class.__dict__.items():
                 if isinstance(attr, InjectedMember):
                     attrs.append((key, attr))
