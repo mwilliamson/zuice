@@ -150,7 +150,7 @@ class Injectable(object):
         attrs = []
         keys = Set()
         for super_class in inspect.getmro(type(self)):
-            for key, attr in super_class.__dict__.items():
+            for key, attr in super_class.__dict__.iteritems():
                 if key not in keys:
                     if isinstance(attr, InjectedMember):
                         keys.add(key)
