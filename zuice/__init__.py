@@ -49,8 +49,8 @@ class Injector(object):
         return self.call(self._bindings[key])
         
     def _inject(self, to_call, argument_builder):
-        args = argument_builder.build_args(self)
-        return to_call(*args.args, **args.kwargs)
+        args, kwargs = argument_builder.build_args(self)
+        return to_call(*args, **kwargs)
     
 class NoSuchBindingException(Exception):
     def __init__(self, key):
@@ -59,11 +59,6 @@ class NoSuchBindingException(Exception):
     def __str__(self):
         return str(self.key)
 
-class _Arguments(object):
-    def __init__(self, args, kwargs):
-        self.args = args
-        self.kwargs = kwargs
-        
 def inject_by_name(constructor):
     return inject_with()(constructor)
 
@@ -96,7 +91,7 @@ class _ZuiceConstructorByNamedKey(object):
             if key not in self._arg_names:
                 kwargs[key] = injector.get(self._named_keys[key])
             
-        return _Arguments(args, kwargs)
+        return args, kwargs
 
 def inject_with(*keys, **named_keys):
     def a(constructor):
@@ -112,10 +107,10 @@ class ZuiceConstructorForMembers(object):
     def build_args(self, injector):
         kwargs = {}
         
-        for key in self._members:
-            kwargs[key] = injector.get(self._members[key])
+        for arg_name, key in self._members.iteritems():
+            kwargs[arg_name] = injector.get(key)
         
-        return _Arguments([], kwargs)
+        return [], kwargs
 
 def inject_attrs(**members):
     def create_constructor(constructor):
@@ -144,8 +139,11 @@ class InjectedMember(object):
 def inject(key):
     return InjectedMember(key)
 
+class InjectableConstructor(object):
+    def build_args(self, injector):
+        return [], {"___injector": injector}
+
 class Injectable(object):
-    @inject_with(___injector='injector')
     def __init__(self, *args, **kwargs):
         attrs = []
         for key in dir(type(self)):
@@ -173,4 +171,5 @@ class Injectable(object):
         
         if len(kwargs) > 0:
             raise TypeError("Unexpected keyword argument: " + kwargs.items()[0][0])
-        
+    
+    __init__.zuice = InjectableConstructor()
