@@ -484,14 +484,3 @@ def test_injectable_injecting_manually_with_extra_members_raises_type_error():
     
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher, _post_fetcher=post_fetcher))
     
-def test_can_extend_injectors_with_further_bindings():
-    base_bindings = Bindings()
-    base_bindings.bind("maximum_threads").to_instance(5)
-    base_injector = Injector(base_bindings)
-    
-    bindings = Bindings()
-    bindings.bind("minimum_threads").to_instance(2)
-    injector = Injector(bindings, base_injector)
-
-    assert_equals(injector.get("minimum_threads"), 2)
-    assert_equals(injector.get("maximum_threads"), 5)
