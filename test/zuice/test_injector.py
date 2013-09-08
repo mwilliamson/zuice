@@ -381,11 +381,19 @@ def test_classes_that_inherit_from_injectable_have_members_injected():
 
 def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually_by_name():
     class Foo(Injectable):
-        _tag_fetcher = inject("tag_fetcher")
+        fetcher = inject("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
     
-    assert Foo(_tag_fetcher=tag_fetcher)._tag_fetcher is tag_fetcher
+    assert Foo(fetcher=tag_fetcher).fetcher is tag_fetcher
+
+def test_injectable_members_have_leading_underscores_removed_in_constructor_arg():
+    class Foo(Injectable):
+        _fetcher = inject("tag_fetcher")
+    
+    tag_fetcher = {'some': 'object'}
+    
+    assert Foo(fetcher=tag_fetcher)._fetcher is tag_fetcher
 
 def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually_by_position():
     class View(Injectable):
@@ -406,10 +414,10 @@ def test_injecting_overspecified_arguments_to_injectable_raises_exception():
     tag_fetcher = {'some': 'object'}
     
     try:
-        view = View(tag_fetcher, _tag_fetcher=tag_fetcher)
+        view = View(tag_fetcher, tag_fetcher=tag_fetcher)
         assert False
     except TypeError, e:
-        assert_equals(str(e), "Got multiple values for keyword argument '_tag_fetcher'")
+        assert_equals(str(e), "Got multiple values for keyword argument 'tag_fetcher'")
 
 def test_injecting_too_many_positional_arguments_to_injectable_raises_exception():
     class View(Injectable):
