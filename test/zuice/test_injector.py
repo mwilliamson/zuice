@@ -8,7 +8,7 @@ from zuice import inject_by_name
 from zuice import inject_with
 from zuice import inject_attrs
 
-from zuice import inject
+from zuice import dependency
 from zuice import Injectable
 
 class Apple(object):
@@ -370,7 +370,7 @@ def test_inject_attrs_injecting_manually_with_extra_members_raises_type_error():
 
 def test_classes_that_inherit_from_injectable_have_members_injected():
     class Foo(Injectable):
-        _tag_fetcher = inject("tag_fetcher")
+        _tag_fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
     
@@ -381,7 +381,7 @@ def test_classes_that_inherit_from_injectable_have_members_injected():
 
 def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually_by_name():
     class Foo(Injectable):
-        fetcher = inject("tag_fetcher")
+        fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
     
@@ -389,7 +389,7 @@ def test_classes_that_inherit_from_injectable_can_be_passed_constructor_argument
 
 def test_injectable_members_have_leading_underscores_removed_in_constructor_arg():
     class Foo(Injectable):
-        _fetcher = inject("tag_fetcher")
+        _fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
     
@@ -397,8 +397,8 @@ def test_injectable_members_have_leading_underscores_removed_in_constructor_arg(
 
 def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually_by_position():
     class View(Injectable):
-        _tag_fetcher = inject("tag_fetcher")
-        _post_fetcher = inject("post_fetcher")
+        _tag_fetcher = dependency("tag_fetcher")
+        _post_fetcher = dependency("post_fetcher")
     
     tag_fetcher = {'some': 'object'}
     post_fetcher = {'another': 'object'}
@@ -409,7 +409,7 @@ def test_classes_that_inherit_from_injectable_can_be_passed_constructor_argument
 
 def test_injecting_overspecified_arguments_to_injectable_raises_exception():
     class View(Injectable):
-        _tag_fetcher = inject("tag_fetcher")
+        _tag_fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
     
@@ -421,7 +421,7 @@ def test_injecting_overspecified_arguments_to_injectable_raises_exception():
 
 def test_injecting_too_many_positional_arguments_to_injectable_raises_exception():
     class View(Injectable):
-        _tag_fetcher = inject("tag_fetcher")
+        _tag_fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
     post_fetcher = {'another': 'object'}
@@ -434,10 +434,10 @@ def test_injecting_too_many_positional_arguments_to_injectable_raises_exception(
 
 def test_injectable_injects_attributes_of_sub_classes():
     class Parent(Injectable):
-        _tag_fetcher = inject('tag_fetcher')
+        _tag_fetcher = dependency('tag_fetcher')
         
     class Child(Parent):
-        _blog_post_fetcher = inject('post_fetcher')
+        _blog_post_fetcher = dependency('post_fetcher')
 
     tag_fetcher = {'some': 'object'}
     post_fetcher = {'another': 'object'}
@@ -453,10 +453,10 @@ def test_injectable_injects_attributes_of_sub_classes():
 
 def test_subclassing_injectable_objects_allows_injected_attributes_to_be_overwritten():
     class Parent(Injectable):
-        _fetcher = inject('tag_fetcher')
+        _fetcher = dependency('tag_fetcher')
         
     class Child(Parent):
-        _fetcher = inject('post_fetcher')
+        _fetcher = dependency('post_fetcher')
 
     post_fetcher = {'another': 'object'}
     
@@ -469,8 +469,8 @@ def test_subclassing_injectable_objects_allows_injected_attributes_to_be_overwri
     
 def test_missing_constructor_arguments_in_injectable_raises_type_error():
     class Foo(Injectable):
-        _tag_fetcher = inject("tag_fetcher")
-        _blog_post_fetcher = inject('post_fetcher')
+        _tag_fetcher = dependency("tag_fetcher")
+        _blog_post_fetcher = dependency('post_fetcher')
     
     tag_fetcher = {'some': 'object'}
     
@@ -478,7 +478,7 @@ def test_missing_constructor_arguments_in_injectable_raises_type_error():
 
 def test_injectable_injecting_manually_with_extra_members_raises_type_error():
     class Foo(Injectable):
-        _tag_fetcher = inject("tag_fetcher")
+        _tag_fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
     post_fetcher = {'another': 'object'}

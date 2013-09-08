@@ -127,7 +127,7 @@ class InjectedMember(object):
     def inject(self, injector):
         return injector.get(self._key)
 
-def inject(key):
+def dependency(key):
     return InjectedMember(key)
 
 class InjectableConstructor(object):
