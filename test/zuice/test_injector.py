@@ -1,7 +1,7 @@
 from nose.tools import assert_equals
 from nose.tools import assert_raises
 
-from zuice.bindings import Bindings
+from zuice import Bindings
 from zuice import Injector
 from zuice import NoSuchBindingException
 from zuice import dependency

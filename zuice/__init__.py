@@ -1,8 +1,9 @@
 import itertools
 
 import zuice.reflect
+from .bindings import Bindings
 
-__all__ = ['Injector', 'Base', 'dependency']
+__all__ = ['Bindings', 'Injector', 'Base', 'dependency']
 
 class Injector(object):
     def __init__(self, bindings):
