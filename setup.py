@@ -8,4 +8,5 @@ setup(
     author_email='mike@zwobble.org',
     url='https://github.com/mwilliamson/zuice',
     packages=['zuice'],
+    keywords="dependency injection di",
 )
