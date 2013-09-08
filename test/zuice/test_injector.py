@@ -9,7 +9,7 @@ from zuice import inject_with
 from zuice import inject_attrs
 
 from zuice import dependency
-from zuice import Injectable
+from zuice import Base
 
 class Apple(object):
     pass
@@ -369,7 +369,7 @@ def test_inject_attrs_injecting_manually_with_extra_members_raises_type_error():
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher, _post_fetcher=post_fetcher))
 
 def test_classes_that_inherit_from_injectable_have_members_injected():
-    class Foo(Injectable):
+    class Foo(Base):
         _tag_fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
@@ -380,7 +380,7 @@ def test_classes_that_inherit_from_injectable_have_members_injected():
     assert injector.get(Foo)._tag_fetcher is tag_fetcher
 
 def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually_by_name():
-    class Foo(Injectable):
+    class Foo(Base):
         fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
@@ -388,7 +388,7 @@ def test_classes_that_inherit_from_injectable_can_be_passed_constructor_argument
     assert Foo(fetcher=tag_fetcher).fetcher is tag_fetcher
 
 def test_injectable_members_have_leading_underscores_removed_in_constructor_arg():
-    class Foo(Injectable):
+    class Foo(Base):
         _fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
@@ -396,7 +396,7 @@ def test_injectable_members_have_leading_underscores_removed_in_constructor_arg(
     assert Foo(fetcher=tag_fetcher)._fetcher is tag_fetcher
 
 def test_classes_that_inherit_from_injectable_can_be_passed_constructor_arguments_manually_by_position():
-    class View(Injectable):
+    class View(Base):
         _tag_fetcher = dependency("tag_fetcher")
         _post_fetcher = dependency("post_fetcher")
     
@@ -408,7 +408,7 @@ def test_classes_that_inherit_from_injectable_can_be_passed_constructor_argument
     assert view._post_fetcher is post_fetcher
 
 def test_injecting_overspecified_arguments_to_injectable_raises_exception():
-    class View(Injectable):
+    class View(Base):
         _tag_fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
@@ -420,7 +420,7 @@ def test_injecting_overspecified_arguments_to_injectable_raises_exception():
         assert_equals(str(e), "Got multiple values for keyword argument 'tag_fetcher'")
 
 def test_injecting_too_many_positional_arguments_to_injectable_raises_exception():
-    class View(Injectable):
+    class View(Base):
         _tag_fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}
@@ -433,7 +433,7 @@ def test_injecting_too_many_positional_arguments_to_injectable_raises_exception(
         assert_equals(str(e), "View requires 1 injected member(s) (2 given)")
 
 def test_injectable_injects_attributes_of_sub_classes():
-    class Parent(Injectable):
+    class Parent(Base):
         _tag_fetcher = dependency('tag_fetcher')
         
     class Child(Parent):
@@ -452,7 +452,7 @@ def test_injectable_injects_attributes_of_sub_classes():
     assert child._blog_post_fetcher is post_fetcher
 
 def test_subclassing_injectable_objects_allows_injected_attributes_to_be_overwritten():
-    class Parent(Injectable):
+    class Parent(Base):
         _fetcher = dependency('tag_fetcher')
         
     class Child(Parent):
@@ -468,7 +468,7 @@ def test_subclassing_injectable_objects_allows_injected_attributes_to_be_overwri
     assert child._fetcher is post_fetcher
     
 def test_missing_constructor_arguments_in_injectable_raises_type_error():
-    class Foo(Injectable):
+    class Foo(Base):
         _tag_fetcher = dependency("tag_fetcher")
         _blog_post_fetcher = dependency('post_fetcher')
     
@@ -477,7 +477,7 @@ def test_missing_constructor_arguments_in_injectable_raises_type_error():
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher))
 
 def test_injectable_injecting_manually_with_extra_members_raises_type_error():
-    class Foo(Injectable):
+    class Foo(Base):
         _tag_fetcher = dependency("tag_fetcher")
     
     tag_fetcher = {'some': 'object'}

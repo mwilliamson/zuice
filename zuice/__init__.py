@@ -134,7 +134,7 @@ class InjectableConstructor(object):
     def build_args(self, injector):
         return [], {"___injector": injector}
 
-class Injectable(object):
+class Base(object):
     def __init__(self, *args, **kwargs):
         attrs = []
         for key in dir(type(self)):
