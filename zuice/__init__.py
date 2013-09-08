@@ -117,7 +117,7 @@ def inject_attrs(**members):
         
     return create_constructor
 
-class InjectedMember(object):
+class Dependency(object):
     _counter = itertools.count()
     
     def __init__(self, key):
@@ -128,7 +128,7 @@ class InjectedMember(object):
         return injector.get(self._key)
 
 def dependency(key):
-    return InjectedMember(key)
+    return Dependency(key)
 
 class InjectableConstructor(object):
     def build_args(self, injector):
@@ -139,7 +139,7 @@ class Injectable(object):
         attrs = []
         for key in dir(type(self)):
             attr = getattr(self, key)
-            if isinstance(attr, InjectedMember):
+            if isinstance(attr, Dependency):
                 attrs.append((key, attr))
             
         if '___injector' in kwargs:
