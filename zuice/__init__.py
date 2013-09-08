@@ -145,7 +145,10 @@ class Base(object):
                 setattr(self, key, attr.inject(injector))
         else:
             if len(args) > len(attrs):
-                raise TypeError("%s requires %s injected member(s) (%s given)" % (type(self).__name__, len(attrs), len(args)))
+                raise TypeError(
+                    "__init__ takes exactly %s arguments (%s given)" %
+                        (len(attrs) + 1, len(args) + 1)
+                )
             attrs.sort(key=lambda (key, attr): attr._ordering)
             for index, (key, attr) in enumerate(attrs):
                 arg_name = key.lstrip("_");

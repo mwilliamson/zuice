@@ -423,14 +423,11 @@ def test_injecting_too_many_positional_arguments_to_injectable_raises_exception(
     class View(Base):
         _tag_fetcher = dependency("tag_fetcher")
     
-    tag_fetcher = {'some': 'object'}
-    post_fetcher = {'another': 'object'}
-    
     try:
-        view = View(tag_fetcher, post_fetcher)
+        view = View(None, None)
         assert False
-    except TypeError, e:
-        assert_equals(str(e), "View requires 1 injected member(s) (2 given)")
+    except TypeError as e:
+        assert_equals(str(e), "__init__ takes exactly 2 arguments (3 given)")
 
 def test_injectable_injects_attributes_of_sub_classes():
     class Parent(Base):
