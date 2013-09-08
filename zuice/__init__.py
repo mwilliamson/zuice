@@ -3,8 +3,7 @@ import itertools
 import zuice.reflect
 from zuice.util import factory
 
-__all__ = ['Injector', 'inject_by_name', 'inject_with', 'inject_attrs',
-           'Base', 'dependency', "factory"]
+__all__ = ['Injector', 'Base', 'dependency']
 
 class Injector(object):
     def __init__(self, bindings):
