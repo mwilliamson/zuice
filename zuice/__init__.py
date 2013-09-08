@@ -1,7 +1,6 @@
 import itertools
 
 import zuice.reflect
-from zuice.util import factory
 
 __all__ = ['Injector', 'Base', 'dependency']
 
