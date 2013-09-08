@@ -22,7 +22,7 @@ class Injector(object):
     def _get_from_type(self, type_to_get):
         if hasattr(type_to_get.__init__, 'zuice'):
             return self._inject(type_to_get, type_to_get.__init__.zuice)
-        if type_to_get.__init__ is object.__init__ or len(zuice.reflect.get_args_spec(type_to_get.__init__)) == 0:
+        if zuice.reflect.has_no_arg_constructor(type_to_get):
             return type_to_get()
         raise NoSuchBindingException(type_to_get)
     
