@@ -7,7 +7,7 @@ import zuice.reflect
 from zuice.util import factory
 
 __all__ = ['Injector', 'inject_by_name', 'inject_with', 'inject_attrs',
-           'Injectable', 'inject', "factory"]
+           'Base', 'dependency', "factory"]
 
 class Injector(object):
     def __init__(self, bindings):
