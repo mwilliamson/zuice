@@ -5,3 +5,5 @@ dist
 bin
 include
 lib
+/_virtualenv
+/*.egg-info
