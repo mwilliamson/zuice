@@ -1,6 +1,3 @@
-from sets import Set
-
-import inspect
 import itertools
 
 import zuice.reflect
