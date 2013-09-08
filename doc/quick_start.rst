@@ -54,7 +54,7 @@ The first solution is to manually construct an instance of :class:`PriceCalculat
 and bind this instance to the type::
 
     from zuice import Injector
-    from zuice.bindings import Bindings
+    from zuice import Bindings
 
     # Assume we've already constructed an instance of PriceCalculator as price_calculator
     bindings = Bindings()
