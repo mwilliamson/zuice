@@ -34,7 +34,7 @@ class Binder(object):
         self._bindings = bindings
     
     def to_instance(self, instance):
-        self.to_provider(lambda: instance)
+        self.to_provider(lambda injector: instance)
     
     def to_key(self, key):
         if key is self._key:
