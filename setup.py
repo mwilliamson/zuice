@@ -6,6 +6,6 @@ setup(
     description='A dependency injection framework for Python',
     author='Michael Williamson',
     author_email='mike@zwobble.org',
-    url='http://gitorious.org/zuice',
+    url='https://github.com/mwilliamson/zuice',
     packages=['zuice'],
 )
