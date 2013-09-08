@@ -25,7 +25,7 @@ def test_bind_type_to_instance():
     bindings.bind(Apple).to_instance(apple)
     
     injector = Injector(bindings)
-    assert injector.get_from_type(Apple) is apple
+    assert injector.get(Apple) is apple
 
 def test_bind_name_to_instance():
     apple = Apple()
@@ -41,7 +41,7 @@ def test_bind_type_to_provider():
     bindings.bind(Apple).to_provider(lambda: apple)
     
     injector = Injector(bindings)
-    assert injector.get_from_type(Apple) is apple
+    assert injector.get(Apple) is apple
 
 def test_get_can_get_by_type_and_name():
     apple_by_type = Apple()
@@ -54,12 +54,6 @@ def test_get_can_get_by_type_and_name():
     assert injector.get(Apple) is apple_by_type
     assert injector.get("apple") is apple_by_name
     
-def test_get_from_type_raises_exception_if_key_is_not_type():
-    bindings = Bindings()
-    bindings.bind("apple").to_instance(Apple())
-    injector = Injector(bindings)
-    assert_raises(TypeError, lambda: injector.get_from_type("apple"))
-    
 def test_bind_can_bind_names_and_types():
     apple_by_type = Apple()
     apple_by_name = Apple()
@@ -69,23 +63,22 @@ def test_bind_can_bind_names_and_types():
     
     injector = Injector(bindings)
     assert injector.get(Apple) is apple_by_type
-    assert injector.get_from_type(Apple) is apple_by_type
     assert injector.get("apple") is apple_by_name
 
-def test_get_from_type_throws_exception_if_no_such_binding_exists():
+def test_get_throws_exception_if_no_such_binding_exists_and_object_has_init_args():
     class Donkey(object):
         def __init__(self, legs):
             pass
         
     injector = Injector(Bindings())
-    assert_raises(NoSuchBindingException, lambda: injector.get_from_type(Donkey))
+    assert_raises(NoSuchBindingException, lambda: injector.get(Donkey))
     
     donkey = Donkey(4)
     bindings = Bindings()
     bindings.bind(Donkey).to_provider(lambda: donkey)
     
     injector = Injector(bindings)
-    assert injector.get_from_type(Donkey) is donkey
+    assert injector.get(Donkey) is donkey
     
 def test_get_raises_exception_if_no_such_binding_exists():
     injector = Injector(Bindings())

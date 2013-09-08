@@ -16,15 +16,16 @@ class Injector(object):
         self._bindings.bind(Injector).to_instance(self)
     
     def get(self, key):
-        if isinstance(key, type):
-            return self.get_from_type(key)
-        return self._get_from_bindings(key)
+        if key in self._bindings:
+            return self.call(self._bindings[key])
+            
+        elif isinstance(key, type):
+            return self._get_from_type(key)
+        
+        else:
+            raise NoSuchBindingException(key)
     
-    def get_from_type(self, type_to_get):
-        if not isinstance(type_to_get, type):
-            raise TypeError(str(type_to_get) + " is not a type")
-        if type_to_get in self._bindings:
-            return self._get_from_bindings(type_to_get)
+    def _get_from_type(self, type_to_get):
         if hasattr(type_to_get.__init__, 'zuice'):
             return self._inject(type_to_get, type_to_get.__init__.zuice)
         if type_to_get.__init__ is object.__init__ or len(zuice.reflect.get_args_spec(type_to_get.__init__)) == 0:
@@ -38,11 +39,6 @@ class Injector(object):
             zuice_constructor = _ZuiceConstructorByNamedKey(method, [], {})
         return self._inject(method, zuice_constructor)
     
-    def _get_from_bindings(self, key):
-        if key not in self._bindings:
-            raise NoSuchBindingException(key)
-        return self.call(self._bindings[key])
-        
     def _inject(self, to_call, argument_builder):
         args, kwargs = argument_builder.build_args(self)
         return to_call(*args, **kwargs)
