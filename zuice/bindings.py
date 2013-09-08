@@ -2,10 +2,14 @@ class Bindings(object):
     def __init__(self):
         self._bindings = {}
     
-    def bind(self, key):
+    def bind(self, key, provider=None):
         if key in self:
             raise AlreadyBoundException("Cannot rebind key: %s" % key)
-        return Binder(key, self._bindings)
+            
+        if provider is None:
+            return Binder(key, self)
+        else:
+            self._bindings[key] = provider
     
     def copy(self):
         copy = Bindings()
@@ -26,7 +30,6 @@ class Bindings(object):
 
 class Binder(object):
     def __init__(self, key, bindings):
-        self._bound = False
         self._key = key
         self._bindings = bindings
     
@@ -42,10 +45,7 @@ class Binder(object):
         return self.to_key(key)
     
     def to_provider(self, provider):
-        if self._bound:
-            raise AlreadyBoundException()
-        self._bound = True
-        self._bindings[self._key] = provider
+        self._bindings.bind(self._key, provider)
 
 class AlreadyBoundException(Exception):
     pass
