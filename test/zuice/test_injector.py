@@ -255,6 +255,19 @@ def test_leading_underscores_are_stripped_from_arg_names():
     assert foo._rate == 2
     
 
+def test_error_is_raised_if_extra_keyword_argument_is_passed_to_get():
+    class Foo(zuice.Base):
+        _rate = zuice.argument()
+    
+    bindings = Bindings()
+    injector = Injector(bindings)
+    try:
+        injector.get(Foo, rate=2, x=2)
+        assert False, "Expected error"
+    except TypeError as error:
+        assert error[0] == "Unexpected keyword argument: x"
+    
+
 def test_arguments_can_have_defaults():
     class Foo(zuice.Base):
         _rate = zuice.argument(default=3)
