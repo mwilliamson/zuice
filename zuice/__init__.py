@@ -61,16 +61,19 @@ class Dependency(Parameter):
 
 
 class Argument(Parameter):
-    def __init__(self):
+    def __init__(self, has_default, default=None):
         self._ordering = _param_counter.next()
+        self._has_default = has_default
+        self._default = default
 
 
 def dependency(key):
     return Dependency(key, {})
 
 
-def argument():
-    return Argument()
+def argument(**kwargs):
+    kwargs["has_default"] = "default" in kwargs
+    return Argument(**kwargs)
 
 
 class InjectableConstructor(object):
@@ -95,6 +98,8 @@ class Base(object):
                     arg_name = _key_to_arg_name(key)
                     if arg_name in extra_args:
                         setattr(self, key, extra_args.pop(arg_name))
+                    elif attr._has_default:
+                        setattr(self, key, attr._default)
                     else:
                         raise _missing_keyword_argument_error(arg_name)
         else:

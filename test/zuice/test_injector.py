@@ -255,6 +255,20 @@ def test_leading_underscores_are_stripped_from_arg_names():
     assert foo._rate == 2
     
 
+def test_arguments_can_have_defaults():
+    class Foo(zuice.Base):
+        _rate = zuice.argument(default=3)
+    
+    bindings = Bindings()
+    injector = Injector(bindings)
+    
+    foo = injector.get(Foo, rate=2)
+    assert foo._rate == 2
+    
+    foo = injector.get(Foo)
+    assert foo._rate == 3
+    
+
 def test_dependencies_can_have_manually_specified_arguments():
     class TagFetcher(zuice.Base):
         author = zuice.argument()
