@@ -232,6 +232,19 @@ def test_can_get_instances_for_classes_with_manually_specified_arguments():
     assert foo.rate == 2
     
 
+def test_error_is_raised_if_argument_is_missing():
+    class Foo(zuice.Base):
+        rate = zuice.argument()
+    
+    bindings = Bindings()
+    injector = Injector(bindings)
+    try:
+        injector.get(Foo)
+        assert False, "Expected error"
+    except TypeError as error:
+        assert error[0] == "Missing keyword argument: rate"
+    
+
 def test_dependencies_can_have_manually_specified_arguments():
     class Foo(zuice.Base):
         _tag_fetcher = dependency("tag_fetcher").args(author="bob")

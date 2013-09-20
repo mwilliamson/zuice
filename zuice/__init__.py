@@ -92,7 +92,10 @@ class Base(object):
                 if isinstance(attr, Dependency):
                     setattr(self, key, attr.inject(injector))
                 elif isinstance(attr, Argument):
-                    setattr(self, key, extra_args.pop(key))
+                    if key in extra_args:
+                        setattr(self, key, extra_args.pop(key))
+                    else:
+                        raise TypeError("Missing keyword argument: %s" % key)
         else:
             if len(args) > len(attrs):
                 raise TypeError(
