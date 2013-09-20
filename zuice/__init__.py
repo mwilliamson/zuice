@@ -10,9 +10,9 @@ class Injector(object):
         self._bindings = bindings.copy()
         self._bindings.bind(Injector).to_instance(self)
     
-    def get(self, key):
+    def get(self, key, **kwargs):
         if key in self._bindings:
-            return self._bindings[key](self)
+            return self._bindings[key](self, **kwargs)
             
         elif isinstance(key, type):
             return self._get_from_type(key)
@@ -42,15 +42,20 @@ class NoSuchBindingException(Exception):
 class Dependency(object):
     _counter = itertools.count()
     
-    def __init__(self, key):
+    def __init__(self, key, kwargs):
         self._key = key
+        self._kwargs = kwargs
         self._ordering = self._counter.next()
-        
+    
+    def args(self, **kwargs):
+        self._kwargs = kwargs
+        return self
+    
     def inject(self, injector):
-        return injector.get(self._key)
+        return injector.get(self._key, **self._kwargs)
 
 def dependency(key):
-    return Dependency(key)
+    return Dependency(key, {})
 
 class InjectableConstructor(object):
     def build_args(self, injector):

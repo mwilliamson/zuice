@@ -206,3 +206,23 @@ def test_injectable_injecting_manually_with_extra_members_raises_type_error():
     
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher, _post_fetcher=post_fetcher))
     
+
+def test_can_get_instances_with_manually_specified_arguments():
+    tag_fetcher_provider = lambda injector, author: {"author": author}
+    
+    bindings = Bindings()
+    bindings.bind("tag_fetcher").to_provider(tag_fetcher_provider)
+    injector = Injector(bindings)
+    assert injector.get("tag_fetcher", author="bob") == {"author": "bob"}
+    
+
+def test_dependencies_can_have_manually_specified_arguments():
+    class Foo(Base):
+        _tag_fetcher = dependency("tag_fetcher").args(author="bob")
+    
+    tag_fetcher_provider = lambda injector, author: {"author": author}
+    
+    bindings = Bindings()
+    bindings.bind("tag_fetcher").to_provider(tag_fetcher_provider)
+    injector = Injector(bindings)
+    assert injector.get(Foo)._tag_fetcher == {"author": "bob"}
