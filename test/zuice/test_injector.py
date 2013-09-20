@@ -246,12 +246,13 @@ def test_error_is_raised_if_argument_is_missing():
     
 
 def test_dependencies_can_have_manually_specified_arguments():
-    class Foo(zuice.Base):
-        _tag_fetcher = dependency("tag_fetcher").args(author="bob")
+    class TagFetcher(zuice.Base):
+        author = zuice.argument()
     
-    tag_fetcher_provider = lambda injector, author: {"author": author}
+    class Foo(zuice.Base):
+        _tag_fetcher = dependency(TagFetcher).args(author="bob")
     
     bindings = Bindings()
-    bindings.bind("tag_fetcher").to_provider(tag_fetcher_provider)
     injector = Injector(bindings)
-    assert injector.get(Foo)._tag_fetcher == {"author": "bob"}
+    assert type(injector.get(Foo)._tag_fetcher) == TagFetcher
+    assert injector.get(Foo)._tag_fetcher.author == "bob"
