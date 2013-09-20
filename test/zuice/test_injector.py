@@ -1,6 +1,7 @@
 from nose.tools import assert_equals
 from nose.tools import assert_raises
 
+import zuice
 from zuice import Bindings
 from zuice import Injector
 from zuice import NoSuchBindingException
@@ -207,7 +208,7 @@ def test_injectable_injecting_manually_with_extra_members_raises_type_error():
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher, _post_fetcher=post_fetcher))
     
 
-def test_can_get_instances_with_manually_specified_arguments():
+def test_can_get_instances_for_providers_with_manually_specified_arguments():
     tag_fetcher_provider = lambda injector, author: {"author": author}
     
     bindings = Bindings()
@@ -216,8 +217,23 @@ def test_can_get_instances_with_manually_specified_arguments():
     assert injector.get("tag_fetcher", author="bob") == {"author": "bob"}
     
 
+def test_can_get_instances_for_classes_with_manually_specified_arguments():
+    class Bar(zuice.Base):
+        name = "bar"
+        
+    class Foo(zuice.Base):
+        rate = zuice.argument()
+        bar = zuice.dependency(Bar)
+    
+    bindings = Bindings()
+    injector = Injector(bindings)
+    foo = injector.get(Foo, rate=2)
+    assert foo.bar.name == "bar"
+    assert foo.rate == 2
+    
+
 def test_dependencies_can_have_manually_specified_arguments():
-    class Foo(Base):
+    class Foo(zuice.Base):
         _tag_fetcher = dependency("tag_fetcher").args(author="bob")
     
     tag_fetcher_provider = lambda injector, author: {"author": author}
