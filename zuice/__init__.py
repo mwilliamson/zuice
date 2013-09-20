@@ -92,10 +92,11 @@ class Base(object):
                 if isinstance(attr, Dependency):
                     setattr(self, key, attr.inject(injector))
                 elif isinstance(attr, Argument):
-                    if key in extra_args:
-                        setattr(self, key, extra_args.pop(key))
+                    arg_name = _key_to_arg_name(key)
+                    if arg_name in extra_args:
+                        setattr(self, key, extra_args.pop(arg_name))
                     else:
-                        raise _missing_keyword_argument_error(key)
+                        raise _missing_keyword_argument_error(arg_name)
         else:
             if len(args) > len(attrs):
                 raise TypeError(
@@ -104,7 +105,7 @@ class Base(object):
                 )
             attrs.sort(key=lambda (key, attr): attr._ordering)
             for index, (key, attr) in enumerate(attrs):
-                arg_name = key.lstrip("_");
+                arg_name = _key_to_arg_name(key)
                 
                 if index < len(args):
                     if arg_name in kwargs:
@@ -113,12 +114,16 @@ class Base(object):
                 elif arg_name in kwargs:
                     setattr(self, key, kwargs.pop(arg_name))
                 else:
-                    raise _missing_keyword_argument_error(key)
+                    raise _missing_keyword_argument_error(arg_name)
         
         if len(kwargs) > 0:
             raise TypeError("Unexpected keyword argument: " + kwargs.items()[0][0])
     
     __init__.zuice = InjectableConstructor()
+
+
+def _key_to_arg_name(key):
+    return key.lstrip("_")
 
 
 def _missing_keyword_argument_error(key):

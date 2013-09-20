@@ -245,6 +245,16 @@ def test_error_is_raised_if_argument_is_missing():
         assert error[0] == "Missing keyword argument: rate"
     
 
+def test_leading_underscores_are_stripped_from_arg_names():
+    class Foo(zuice.Base):
+        _rate = zuice.argument()
+    
+    bindings = Bindings()
+    injector = Injector(bindings)
+    foo = injector.get(Foo, rate=2)
+    assert foo._rate == 2
+    
+
 def test_dependencies_can_have_manually_specified_arguments():
     class TagFetcher(zuice.Base):
         author = zuice.argument()
