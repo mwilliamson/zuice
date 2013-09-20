@@ -95,7 +95,7 @@ class Base(object):
                     if key in extra_args:
                         setattr(self, key, extra_args.pop(key))
                     else:
-                        raise TypeError("Missing keyword argument: %s" % key)
+                        raise _missing_keyword_argument_error(key)
         else:
             if len(args) > len(attrs):
                 raise TypeError(
@@ -113,9 +113,13 @@ class Base(object):
                 elif arg_name in kwargs:
                     setattr(self, key, kwargs.pop(arg_name))
                 else:
-                    raise TypeError("Missing keyword argument: %s" % key)
+                    raise _missing_keyword_argument_error(key)
         
         if len(kwargs) > 0:
             raise TypeError("Unexpected keyword argument: " + kwargs.items()[0][0])
     
     __init__.zuice = InjectableConstructor()
+
+
+def _missing_keyword_argument_error(key):
+    return TypeError("Missing keyword argument: %s" % key)
