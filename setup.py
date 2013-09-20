@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='zuice',
-    version='0.2.1',
+    version='0.2.2',
     description='A dependency injection framework for Python',
     author='Michael Williamson',
     author_email='mike@zwobble.org',
