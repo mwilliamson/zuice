@@ -8,9 +8,18 @@ __all__ = ['Bindings', 'Injector', 'Base', 'dependency']
 class Injector(object):
     def __init__(self, bindings):
         self._bindings = bindings.copy()
-        self._bindings.bind(Injector).to_instance(self)
     
-    def get(self, key, **kwargs):
+    def get(self, key, *extra_bindings, **kwargs):
+        if key == Injector:
+            return self
+        
+        if len(extra_bindings) > 0:
+            bindings = self._bindings.copy()
+            for binding in extra_bindings:
+                bindings.bind(binding.key).to_instance(binding.instance)
+            injector = Injector(bindings)
+            return injector.get(key, **kwargs)
+            
         if key in self._bindings:
             return self._bindings[key](self, **kwargs)
             
@@ -74,6 +83,27 @@ def dependency(key):
 def argument(**kwargs):
     kwargs["has_default"] = "default" in kwargs
     return Argument(**kwargs)
+
+
+class Key(object):
+    def __init__(self, name):
+        self._name = name
+    
+    def __call__(self, value):
+        return BoundKey(self, value)
+
+    def __repr__(self):
+        return "Key({0})".format(repr(self._name))
+
+
+class BoundKey(object):
+    def __init__(self, key, instance):
+        self.key = key
+        self.instance = instance
+    
+
+def key(name):
+    return Key(name)
 
 
 class InjectableConstructor(object):

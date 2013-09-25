@@ -232,6 +232,21 @@ def test_can_get_instances_for_classes_with_manually_specified_arguments():
     assert foo.rate == 2
     
 
+def test_can_set_bindings_for_keys_in_call_to_get():
+    Name = zuice.key("Name")
+    
+    class Greeter(zuice.Base):
+        _name = zuice.dependency(Name)
+        
+        def hello(self):
+            return "Hello {0}".format(self._name)
+    
+    bindings = Bindings()
+    injector = Injector(bindings)
+    greeter = injector.get(Greeter, Name("Bob"))
+    assert greeter.hello() == "Hello Bob"
+    
+
 def test_error_is_raised_if_argument_is_missing():
     class Foo(zuice.Base):
         rate = zuice.argument()
