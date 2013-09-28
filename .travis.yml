@@ -6,6 +6,7 @@ python:
   - "3.3"
   - "pypy"
 install:
+  - "touch README"
   - "pip install . --use-mirrors"
   - "pip install -r test-requirements.txt --use-mirrors"
 script: nosetests test
