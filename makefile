@@ -1,8 +1,12 @@
 .PHONY: test upload clean bootstrap setup
 
 test:
-	sh -c '. _virtualenv/bin/activate; nosetests test'
-	
+	_virtualenv/bin/nosetests test
+
+test-all: setup
+	_virtualenv/bin/tox
+	make clean
+
 upload: setup
 	python setup.py sdist upload
 	make clean

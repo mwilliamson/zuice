@@ -7,3 +7,4 @@ include
 lib
 /_virtualenv
 /*.egg-info
+/.tox
