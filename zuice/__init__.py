@@ -59,7 +59,7 @@ class Dependency(Parameter):
     def __init__(self, key, kwargs):
         self._key = key
         self._kwargs = kwargs
-        self._ordering = _param_counter.next()
+        self._ordering = next(_param_counter)
     
     def args(self, **kwargs):
         self._kwargs = kwargs
@@ -71,7 +71,7 @@ class Dependency(Parameter):
 
 class Argument(Parameter):
     def __init__(self, has_default, default=None):
-        self._ordering = _param_counter.next()
+        self._ordering = next(_param_counter)
         self._has_default = has_default
         self._default = default
 
@@ -140,7 +140,7 @@ class Base(object):
                     "__init__ takes exactly %s arguments (%s given)" %
                         (len(attrs) + 1, len(args) + 1)
                 )
-            attrs.sort(key=lambda (key, attr): attr._ordering)
+            attrs.sort(key=lambda item: item[1]._ordering)
             for index, (key, attr) in enumerate(attrs):
                 arg_name = _key_to_arg_name(key)
                 
@@ -172,5 +172,5 @@ def _unexpected_keyword_argument_error(key):
 
 def _check_keyword_arguments_consumed(kwargs):
     if len(kwargs) > 0:
-        raise _unexpected_keyword_argument_error(kwargs.keys()[0])
+        raise _unexpected_keyword_argument_error(next(iter(kwargs.keys())))
     

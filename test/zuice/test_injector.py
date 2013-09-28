@@ -1,4 +1,4 @@
-from nose.tools import assert_equals
+from nose.tools import assert_equal
 from nose.tools import assert_raises
 
 import zuice
@@ -75,7 +75,7 @@ def test_can_inject_class_with_no_constructor_arguments():
             
     injector = Injector(Bindings())
     coconut = injector.get(Coconut)
-    assert_equals(10, coconut.x)
+    assert_equal(10, coconut.x)
 
 
 def test_can_bind_to_names():
@@ -141,8 +141,8 @@ def test_injecting_overspecified_arguments_to_injectable_raises_exception():
     try:
         view = View(tag_fetcher, tag_fetcher=tag_fetcher)
         assert False
-    except TypeError, e:
-        assert_equals(str(e), "Got multiple values for keyword argument 'tag_fetcher'")
+    except TypeError as e:
+        assert_equal(str(e), "Got multiple values for keyword argument 'tag_fetcher'")
 
 def test_injecting_too_many_positional_arguments_to_injectable_raises_exception():
     class View(Base):
@@ -152,7 +152,7 @@ def test_injecting_too_many_positional_arguments_to_injectable_raises_exception(
         view = View(None, None)
         assert False
     except TypeError as e:
-        assert_equals(str(e), "__init__ takes exactly 2 arguments (3 given)")
+        assert_equal(str(e), "__init__ takes exactly 2 arguments (3 given)")
 
 def test_injectable_injects_attributes_of_sub_classes():
     class Parent(Base):
@@ -257,7 +257,7 @@ def test_error_is_raised_if_argument_is_missing():
         injector.get(Foo)
         assert False, "Expected error"
     except TypeError as error:
-        assert error[0] == "Missing keyword argument: rate"
+        assert_equal(str(error), "Missing keyword argument: rate")
     
 
 def test_leading_underscores_are_stripped_from_arg_names():
@@ -280,7 +280,7 @@ def test_error_is_raised_if_extra_keyword_argument_is_passed_to_get():
         injector.get(Foo, rate=2, x=2)
         assert False, "Expected error"
     except TypeError as error:
-        assert error[0] == "Unexpected keyword argument: x"
+        assert_equal(str(error), "Unexpected keyword argument: x")
     
 
 def test_arguments_can_have_defaults():
