@@ -1,4 +1,4 @@
-.PHONY: test upload clean bootstrap setup
+.PHONY: test upload clean bootstrap setup assert-converted-readme
 
 test:
 	_virtualenv/bin/nosetests test
