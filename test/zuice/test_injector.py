@@ -308,3 +308,17 @@ def test_dependencies_can_have_manually_specified_arguments():
     injector = Injector(bindings)
     assert type(injector.get(Foo)._tag_fetcher) == TagFetcher
     assert injector.get(Foo)._tag_fetcher.author == "bob"
+
+
+class TestLifetimes(object):
+    def test_new_instances_are_returned_by_default(self):
+        x = [0]
+        class Counter(object):
+            def __init__(self):
+               self.x = x[0] = x[0] + 1 
+        
+        bindings = Bindings()
+        injector = Injector(bindings)
+        
+        assert_equal(1, injector.get(Counter).x)
+        assert_equal(2, injector.get(Counter).x)
