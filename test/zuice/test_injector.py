@@ -322,3 +322,31 @@ class TestLifetimes(object):
         
         assert_equal(1, injector.get(Counter).x)
         assert_equal(2, injector.get(Counter).x)
+    
+    def test_bindings_can_change_lifetime_to_singleton(self):
+        x = [0]
+        class Counter(object):
+            def __init__(self):
+               self.x = x[0] = x[0] + 1
+        
+        bindings = Bindings()
+        bindings.bind(Counter).singleton()
+        injector = Injector(bindings)
+        
+        assert_equal(1, injector.get(Counter).x)
+        assert_equal(1, injector.get(Counter).x)
+    
+    def test_bindings_can_change_lifetime_of_provider_to_singleton(self):
+        x = [0]
+        
+        def count(injector):
+            x[0] += 1
+            return x[0]
+        
+        counter = zuice.Key("counter")
+        bindings = Bindings()
+        bindings.bind(counter).to_provider(count).singleton()
+        injector = Injector(bindings)
+        assert_equal(1, injector.get(counter))
+        assert_equal(1, injector.get(counter))
+        
