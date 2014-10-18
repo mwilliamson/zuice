@@ -346,7 +346,7 @@ class TestLifetimes(object):
             x[0] += 1
             return x[0]
         
-        counter = zuice._Key("counter")
+        counter = zuice.key("counter")
         bindings = Bindings()
         bindings.bind(counter).to_provider(count).singleton()
         injector = Injector(bindings)
