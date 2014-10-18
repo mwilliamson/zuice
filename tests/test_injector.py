@@ -233,15 +233,18 @@ def test_can_get_instances_for_classes_with_manually_specified_arguments():
     
 
 def test_can_set_bindings_for_keys_in_call_to_get():
+    Greeting = zuice.key("Greeting")
     Name = zuice.key("Name")
     
     class Greeter(zuice.Base):
+        _greeting = zuice.dependency(Greeting)
         _name = zuice.dependency(Name)
         
         def hello(self):
-            return "Hello {0}".format(self._name)
+            return "{0} {1}".format(self._greeting, self._name)
     
     bindings = Bindings()
+    bindings.bind(Greeting).to_instance("Hello")
     injector = Injector(bindings)
     greeter = injector.get(Greeter, Name("Bob"))
     assert greeter.hello() == "Hello Bob"

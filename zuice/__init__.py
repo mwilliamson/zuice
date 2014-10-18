@@ -6,25 +6,35 @@ from .bindings import Bindings
 __all__ = ['Bindings', 'Injector', 'Base', 'dependency']
 
 class Injector(object):
-    def __init__(self, bindings):
+    def __init__(self, bindings, _parent_injector=None):
         self._bindings = bindings.copy()
+        self._parent_injector = _parent_injector
+    
+    def _extend(self, bindings):
+        return Injector(bindings, self)
     
     def get(self, key, *extra_bindings, **kwargs):
+        if len(extra_bindings) > 0:
+            bindings = Bindings()
+            for binding in extra_bindings:
+                bindings.bind(binding.key).to_instance(binding.instance)
+            injector = self._extend(bindings)
+            return injector.get(key, **kwargs)
+        else:
+            return self._get_by_key(key, **kwargs)
+    
+    def _get_by_key(self, key, **kwargs):
         if key == Injector:
             return self
         
-        if len(extra_bindings) > 0:
-            bindings = self._bindings.copy()
-            for binding in extra_bindings:
-                bindings.bind(binding.key).to_instance(binding.instance)
-            injector = Injector(bindings)
-            return injector.get(key, **kwargs)
-            
-        if key in self._bindings:
+        elif key in self._bindings:
             return self._bindings[key](self, **kwargs)
             
         elif isinstance(key, type):
             return self._get_from_type(key, **kwargs)
+        
+        elif self._parent_injector is not None:
+            return self._parent_injector.get(key, **kwargs)
         
         else:
             raise NoSuchBindingException(key)
