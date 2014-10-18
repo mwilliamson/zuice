@@ -208,30 +208,6 @@ def test_injectable_injecting_manually_with_extra_members_raises_type_error():
     assert_raises(TypeError, lambda: Foo(_tag_fetcher=tag_fetcher, _post_fetcher=post_fetcher))
     
 
-def test_can_get_instances_for_providers_with_manually_specified_arguments():
-    tag_fetcher_provider = lambda injector, author: {"author": author}
-    
-    bindings = Bindings()
-    bindings.bind("tag_fetcher").to_provider(tag_fetcher_provider)
-    injector = Injector(bindings)
-    assert injector.get("tag_fetcher", author="bob") == {"author": "bob"}
-    
-
-def test_can_get_instances_for_classes_with_manually_specified_arguments():
-    class Bar(zuice.Base):
-        name = "bar"
-        
-    class Foo(zuice.Base):
-        rate = zuice.argument()
-        bar = zuice.dependency(Bar)
-    
-    bindings = Bindings()
-    injector = Injector(bindings)
-    foo = injector.get(Foo, rate=2)
-    assert foo.bar.name == "bar"
-    assert foo.rate == 2
-    
-
 def test_can_set_bindings_for_keys_in_call_to_get():
     Greeting = zuice.key("Greeting")
     Name = zuice.key("Name")
@@ -248,69 +224,6 @@ def test_can_set_bindings_for_keys_in_call_to_get():
     injector = Injector(bindings)
     greeter = injector.get(Greeter, Name("Bob"))
     assert greeter.hello() == "Hello Bob"
-    
-
-def test_error_is_raised_if_argument_is_missing():
-    class Foo(zuice.Base):
-        rate = zuice.argument()
-    
-    bindings = Bindings()
-    injector = Injector(bindings)
-    try:
-        injector.get(Foo)
-        assert False, "Expected error"
-    except TypeError as error:
-        assert_equal(str(error), "Missing keyword argument: rate")
-    
-
-def test_leading_underscores_are_stripped_from_arg_names():
-    class Foo(zuice.Base):
-        _rate = zuice.argument()
-    
-    bindings = Bindings()
-    injector = Injector(bindings)
-    foo = injector.get(Foo, rate=2)
-    assert foo._rate == 2
-    
-
-def test_error_is_raised_if_extra_keyword_argument_is_passed_to_get():
-    class Foo(zuice.Base):
-        _rate = zuice.argument()
-    
-    bindings = Bindings()
-    injector = Injector(bindings)
-    try:
-        injector.get(Foo, rate=2, x=2)
-        assert False, "Expected error"
-    except TypeError as error:
-        assert_equal(str(error), "Unexpected keyword argument: x")
-    
-
-def test_arguments_can_have_defaults():
-    class Foo(zuice.Base):
-        _rate = zuice.argument(default=3)
-    
-    bindings = Bindings()
-    injector = Injector(bindings)
-    
-    foo = injector.get(Foo, rate=2)
-    assert foo._rate == 2
-    
-    foo = injector.get(Foo)
-    assert foo._rate == 3
-    
-
-def test_dependencies_can_have_manually_specified_arguments():
-    class TagFetcher(zuice.Base):
-        author = zuice.argument()
-    
-    class Foo(zuice.Base):
-        _tag_fetcher = dependency(TagFetcher).args(author="bob")
-    
-    bindings = Bindings()
-    injector = Injector(bindings)
-    assert type(injector.get(Foo)._tag_fetcher) == TagFetcher
-    assert injector.get(Foo)._tag_fetcher.author == "bob"
 
 
 class TestLifetimes(object):
