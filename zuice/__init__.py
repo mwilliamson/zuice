@@ -72,11 +72,11 @@ class NoSuchBindingException(Exception):
 _param_counter = itertools.count()
 
 
-class Parameter(object):
+class _Parameter(object):
     pass
 
 
-class Dependency(Parameter):
+class _Dependency(_Parameter):
     def __init__(self, key, kwargs):
         self._key = key
         self._kwargs = kwargs
@@ -90,7 +90,7 @@ class Dependency(Parameter):
         return injector.get(self._key, **self._kwargs)
 
 
-class Argument(Parameter):
+class _Argument(_Parameter):
     def __init__(self, has_default, default=None):
         self._ordering = next(_param_counter)
         self._has_default = has_default
@@ -98,33 +98,33 @@ class Argument(Parameter):
 
 
 def dependency(key):
-    return Dependency(key, {})
+    return _Dependency(key, {})
 
 
 def argument(**kwargs):
     kwargs["has_default"] = "default" in kwargs
-    return Argument(**kwargs)
+    return _Argument(**kwargs)
 
 
-class Key(object):
+class _Key(object):
     def __init__(self, name):
         self._name = name
     
     def __call__(self, value):
-        return BoundKey(self, value)
+        return _BoundKey(self, value)
 
     def __repr__(self):
         return "Key({0})".format(repr(self._name))
 
 
-class BoundKey(object):
+class _BoundKey(object):
     def __init__(self, key, instance):
         self.key = key
         self.instance = instance
     
 
 def key(name):
-    return Key(name)
+    return _Key(name)
 
 
 class InjectableConstructor(object):
@@ -136,16 +136,16 @@ class Base(object):
         attrs = []
         for key in dir(type(self)):
             attr = getattr(self, key)
-            if isinstance(attr, Parameter):
+            if isinstance(attr, _Parameter):
                 attrs.append((key, attr))
             
         if '___injector' in kwargs:
             injector = kwargs.pop('___injector')
             extra_args = kwargs.pop('___kwargs')
             for key, attr in attrs:
-                if isinstance(attr, Dependency):
+                if isinstance(attr, _Dependency):
                     setattr(self, key, attr.inject(injector))
-                elif isinstance(attr, Argument):
+                elif isinstance(attr, _Argument):
                     arg_name = _key_to_arg_name(key)
                     if arg_name in extra_args:
                         setattr(self, key, extra_args.pop(arg_name))
