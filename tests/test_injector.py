@@ -266,3 +266,22 @@ class TestLifetimes(object):
         assert_equal(1, injector.get(counter))
         assert_equal(1, injector.get(counter))
         
+
+    
+def test_methods_decorated_with_init_decorator_are_run_after_injection():
+    class Count(zuice.Base):
+        @zuice.init
+        def start(self):
+            self.x = 1
+    
+    injector = Injector(Bindings())
+    assert_equal(1, injector.get(Count).x)
+
+    
+def test_methods_decorated_with_init_decorator_are_run_after_manual_construction():
+    class Count(zuice.Base):
+        @zuice.init
+        def start(self):
+            self.x = 1
+    
+    assert_equal(1, Count().x)

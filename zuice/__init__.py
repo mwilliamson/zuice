@@ -72,7 +72,7 @@ class NoSuchBindingException(Exception):
         return str(self.key)
 
 
-_param_counter = itertools.count()
+_param_counter = itertools.count(1)
 
 
 class _Parameter(object):
@@ -106,38 +106,51 @@ def key(name):
 
 class Base(object):
     def __init__(self, *args, **kwargs):
-        attrs = []
-        for key in dir(type(self)):
-            attr = getattr(self, key)
-            if isinstance(attr, _Parameter):
-                attrs.append((key, attr))
-            
+        attrs = [(key, getattr(self, key)) for key in dir(type(self))]
+        
+        params = [
+            (key, attr)
+            for (key, attr) in attrs
+            if isinstance(attr, _Parameter)
+        ]
         if '___injector' in kwargs:
             injector = kwargs.pop('___injector')
-            for key, attr in attrs:
+            for key, attr in params:
                 setattr(self, key, attr.inject(injector))
         else:
-            if len(args) > len(attrs):
-                raise TypeError(
-                    "__init__ takes exactly %s arguments (%s given)" %
-                        (len(attrs) + 1, len(args) + 1)
-                )
-            attrs.sort(key=lambda item: item[1]._ordering)
-            for index, (key, attr) in enumerate(attrs):
-                arg_name = _key_to_arg_name(key)
-                
-                if index < len(args):
-                    if arg_name in kwargs:
-                        raise TypeError("Got multiple values for keyword argument '%s'" % arg_name)
-                    setattr(self, key, args[index])
-                elif arg_name in kwargs:
-                    setattr(self, key, kwargs.pop(arg_name))
-                else:
-                    raise _missing_keyword_argument_error(arg_name)
+            _manual_injection(self, params, args, kwargs)
+        
+        inits = sorted(
+            (attr for key, attr in attrs if hasattr(attr, "_zuice_init")),
+            key=lambda attr: attr._zuice_init
+        )
+        for init in inits:
+            init()
         
         _check_keyword_arguments_consumed(kwargs)
     
     __init__._zuice = True
+
+
+def _manual_injection(self, attrs, args, kwargs):
+    if len(args) > len(attrs):
+        raise TypeError(
+            "__init__ takes exactly %s arguments (%s given)" %
+                (len(attrs) + 1, len(args) + 1)
+        )
+    attrs.sort(key=lambda item: item[1]._ordering)
+    for index, (key, attr) in enumerate(attrs):
+        arg_name = _key_to_arg_name(key)
+        
+        if index < len(args):
+            if arg_name in kwargs:
+                raise TypeError("Got multiple values for keyword argument '%s'" % arg_name)
+            setattr(self, key, args[index])
+        elif arg_name in kwargs:
+            setattr(self, key, kwargs.pop(arg_name))
+        else:
+            raise _missing_keyword_argument_error(arg_name)
+    
 
 
 def _key_to_arg_name(key):
@@ -156,3 +169,7 @@ def _check_keyword_arguments_consumed(kwargs):
     if len(kwargs) > 0:
         raise _unexpected_keyword_argument_error(next(iter(kwargs.keys())))
     
+
+def init(func):
+    func._zuice_init = next(_param_counter)
+    return func
