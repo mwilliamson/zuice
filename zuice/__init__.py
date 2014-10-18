@@ -51,16 +51,16 @@ class Injector(object):
         
     
     def _get_from_type(self, type_to_get):
-        if hasattr(type_to_get.__init__, 'zuice'):
-            return self._inject(type_to_get, type_to_get.__init__.zuice)
-        if zuice.reflect.has_no_arg_constructor(type_to_get):
+        if hasattr(type_to_get.__init__, '_zuice'):
+            return type_to_get(___injector=self)
+        
+        elif zuice.reflect.has_no_arg_constructor(type_to_get):
             return type_to_get()
-        raise NoSuchBindingException(type_to_get)
-    
-    def _inject(self, to_call, argument_builder):
-        args, kwargs = argument_builder.build_args(self)
-        return to_call(*args, **kwargs)
-    
+        
+        else:
+            raise NoSuchBindingException(type_to_get)
+
+
 class NoSuchBindingException(Exception):
     def __init__(self, key):
         self.key = key
@@ -110,11 +110,6 @@ def key(name):
     return _Key(name)
 
 
-class InjectableConstructor(object):
-    def build_args(self, injector):
-        return [], {"___injector": injector}
-
-
 class Base(object):
     def __init__(self, *args, **kwargs):
         attrs = []
@@ -148,7 +143,7 @@ class Base(object):
         
         _check_keyword_arguments_consumed(kwargs)
     
-    __init__.zuice = InjectableConstructor()
+    __init__._zuice = True
 
 
 def _key_to_arg_name(key):
