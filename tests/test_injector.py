@@ -222,7 +222,7 @@ def test_can_set_bindings_for_keys_in_call_to_get():
     bindings = Bindings()
     bindings.bind(Greeting).to_instance("Hello")
     injector = Injector(bindings)
-    greeter = injector.get(Greeter, Name("Bob"))
+    greeter = injector.get(Greeter, {Name: "Bob"})
     assert greeter.hello() == "Hello Bob"
 
 

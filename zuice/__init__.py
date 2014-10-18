@@ -11,18 +11,21 @@ class Injector(object):
         self._parent_injector = _parent_injector
         self._singletons = {}
     
-    def _extend(self, bindings):
-        return Injector(bindings, self)
-    
-    def get(self, key, *extra_bindings):
-        if len(extra_bindings) > 0:
-            bindings = Bindings()
-            for binding in extra_bindings:
-                bindings.bind(binding.key).to_instance(binding.instance)
-            injector = self._extend(bindings)
+    def get(self, key, instances=None):
+        if instances:
+            injector = self._extend_with_instances(instances)
             return injector.get(key)
         else:
             return self._get_by_key(key)
+    
+    def _extend_with_instances(self, instances):
+        bindings = Bindings()
+        for key in instances:
+            bindings.bind(key).to_instance(instances[key])
+        return self._extend_with_bindings(bindings)
+        
+    def _extend_with_bindings(self, bindings):
+        return Injector(bindings, self)
     
     def _get_by_key(self, key):
         if key == Injector:
@@ -93,17 +96,8 @@ class _Key(object):
     def __init__(self, name):
         self._name = name
     
-    def __call__(self, value):
-        return _BoundKey(self, value)
-
     def __repr__(self):
         return "Key({0})".format(repr(self._name))
-
-
-class _BoundKey(object):
-    def __init__(self, key, instance):
-        self.key = key
-        self.instance = instance
     
 
 def key(name):
