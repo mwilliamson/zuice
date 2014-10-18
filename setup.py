@@ -10,7 +10,7 @@ setup(
     name='zuice',
     version='0.2.5',
     description='A dependency injection framework for Python',
-    long_description=read("README"),
+    long_description=read("README.rst"),
     author='Michael Williamson',
     author_email='mike@zwobble.org',
     url='https://github.com/mwilliamson/zuice',
