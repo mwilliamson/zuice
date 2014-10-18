@@ -32,7 +32,7 @@ class Bindings(object):
         return self._bindings[key]
     
     def get(self, key):
-        return self._bindings.get(key, lambda injector: injector._get_from_type(key))
+        return self._bindings.get(key, _Binding(lambda injector: injector._get_from_type(key), False))
 
 class Binder(object):
     def __init__(self, key, bindings):
@@ -51,27 +51,19 @@ class Binder(object):
         return self.to_key(key)
     
     def to_provider(self, provider):
-        self._bindings.bind(self._key, provider)
+        self._bindings.bind(self._key, _Binding(provider, False))
         return self
     
     def singleton(self):
         current_provider = self._bindings.get(self._key)
-        self._bindings._force_bind(self._key, SingletonProvider(current_provider))
+        self._bindings._force_bind(self._key, _Binding(current_provider.provider, True))
         return self
 
 
-class SingletonProvider(object):
-    def __init__(self, provider):
-        self._instantiated = False
-        self._provider = provider
-    
-    def __call__(self, injector):
-        if self._instantiated:
-            return self._value
-        else:
-            self._value = self._provider(injector)
-            self._instantiated = True
-            return self._value
+class _Binding(object):
+    def __init__(self, provider, is_singleton):
+        self.provider = provider
+        self.is_singleton = is_singleton
 
 
 class AlreadyBoundException(Exception):

@@ -9,6 +9,7 @@ class Injector(object):
     def __init__(self, bindings, _parent_injector=None):
         self._bindings = bindings.copy()
         self._parent_injector = _parent_injector
+        self._singletons = {}
     
     def _extend(self, bindings):
         return Injector(bindings, self)
@@ -28,7 +29,7 @@ class Injector(object):
             return self
         
         elif key in self._bindings:
-            return self._bindings[key](self, **kwargs)
+            return self._get_from_binding(self._bindings[key], **kwargs)
             
         elif isinstance(key, type):
             return self._get_from_type(key, **kwargs)
@@ -38,6 +39,16 @@ class Injector(object):
         
         else:
             raise NoSuchBindingException(key)
+    
+    def _get_from_binding(self, binding, **kwargs):
+        if binding.is_singleton:
+            if binding not in self._singletons:
+                self._singletons[binding] = binding.provider(self, **kwargs)
+            
+            return self._singletons[binding]
+        else:
+            return binding.provider(self, **kwargs)
+        
     
     def _get_from_type(self, type_to_get, **kwargs):
         if hasattr(type_to_get.__init__, 'zuice'):
