@@ -7,38 +7,49 @@ __all__ = ['Bindings', 'Injector', 'Base', 'dependency']
 
 
 class _Scope(object):
-    def __init__(self, active_scope, values=None):
-        if values is None:
-            values = {}
+    def __init__(self, active_values, cached_values=None):
+        if cached_values is None:
+            cached_values = {}
         
-        self._active_scope = frozenset(active_scope)
-        self._values = values
+        self._active_values = active_values
+        self._active_key = frozenset(self._active_values.items())
+        self._cached_values = cached_values
     
     def __contains__(self, key):
-        return (key, self._active_scope) in self._values
+        return (
+            key in self._active_values or
+            (key, self._active_key) in self._cached_values
+        )
     
     def get(self, key):
-        return self._values[(key, self._active_scope)]
+        if key in self._active_values:
+            return self._active_values[key]
+        else:
+            return self._cached_values[(key, self._active_key)]
     
     def enter(self, instances):
-        new_scope = _Scope(self._active_scope | set(instances.items()), self._values)
-        for key in instances:
-            new_scope.set(key, instances[key])
+        active_values = self._active_values.copy()
+        active_values.update(instances)
+        new_scope = _Scope(active_values, self._cached_values)
         return new_scope
     
-    def set(self, key, value):
-        self._values[(key, self._active_scope)] = value
+    def cache_set(self, key, value):
+        self._cached_values[(key, self._active_key)] = value
         return value
     
-    def in_scope(self, scope):
-        return _Scope(scope, self._values)
+    def in_scope(self, scope_keys):
+        active_values = dict(
+            (key, self._active_values[key])
+            for key in scope_keys
+        )
+        return _Scope(active_values, self._cached_values)
 
 
 class Injector(object):
     def __init__(self, bindings, _scope=None):
         self._bindings = bindings.copy()
         if _scope is None:
-            _scope = _Scope([])
+            _scope = _Scope({})
             
         self._scope = _scope
     
@@ -78,14 +89,10 @@ class Injector(object):
         else:
             injector = self._in_scope(binding.scope_key)
             value = binding.provider(injector)
-            return self._scope.set(key, value)
+            return self._scope.cache_set(key, value)
     
     def _in_scope(self, scope_keys):
-        scope_values = set(
-            (key, self.get(key))
-            for key in scope_keys
-        )
-        scope = self._scope.in_scope(scope_values)
+        scope = self._scope.in_scope(scope_keys)
         return Injector(self._bindings, scope)
     
     def _get_from_type(self, type_to_get):

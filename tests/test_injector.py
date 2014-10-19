@@ -336,8 +336,6 @@ class TestLifetimes(object):
         assert_equal(["Bob", "Jim"], injector.get(counter, {Name: "Jim"}))
     
     def test_can_retrieve_scoped_value_when_scoped_value_is_set_alongside_other_values(self):
-        # TODO: get this passing
-        return
         x = []
         
         Name = zuice.key("Name")
