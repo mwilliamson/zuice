@@ -313,6 +313,26 @@ class TestLifetimes(object):
         injector = Injector(bindings)
         assert_equal(1, injector.get(counter))
         assert_equal(1, injector.get(counter))
+    
+    def test_bindings_can_scope_provider_to_value(self):
+        x = []
+        
+        Name = zuice.key("Name")
+        
+        def count(injector):
+            name = injector.get(Name)
+            x.append(name)
+            return x
+        
+        counter = zuice.key("counter")
+        bindings = Bindings()
+        
+        with bindings.scope(Name) as scope_bindings:
+            scope_bindings.bind(counter).to_provider(count)
+        
+        injector = Injector(bindings)
+        assert_equal(["Bob"], injector.get(counter, {Name: "Bob"}))
+        assert_equal(["Bob", "Jim"], injector.get(counter, {Name: "Jim"}))
 
     
 def test_methods_decorated_with_init_decorator_are_run_after_injection():

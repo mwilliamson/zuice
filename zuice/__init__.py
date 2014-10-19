@@ -1,7 +1,7 @@
 import itertools
 
 import zuice.reflect
-from .bindings import Bindings
+from .bindings import Bindings, SingletonScope, singleton_scope
 
 __all__ = ['Bindings', 'Injector', 'Base', 'dependency']
 
@@ -20,8 +20,8 @@ class _Scope(object):
     def get(self, key):
         return self._values[(key, self._active_scope)]
     
-    def enter(self, scope_keys, instances):
-        new_scope = _Scope(self._active_scope & set(scope_keys), self._values)
+    def enter(self, instances):
+        new_scope = _Scope(self._active_scope | set(instances.items()), self._values)
         for key in instances:
             new_scope.set(key, instances[key])
         return new_scope
@@ -38,7 +38,7 @@ class Injector(object):
     def __init__(self, bindings, _scope=None):
         self._bindings = bindings.copy()
         if _scope is None:
-            _scope = _Scope([Injector])
+            _scope = _Scope([(SingletonScope, singleton_scope)])
             
         self._scope = _scope
     
@@ -50,8 +50,7 @@ class Injector(object):
             return self._get_by_key(key)
     
     def _extend_with_instances(self, instances):
-        scope_keys = instances.keys()
-        return Injector(self._bindings, self._scope.enter(scope_keys, instances))
+        return Injector(self._bindings, self._scope.enter(instances))
     
     def _get_by_key(self, key):
         if key == Injector:
@@ -73,16 +72,21 @@ class Injector(object):
             raise NoSuchBindingException(key)
     
     def _get_from_binding(self, key, binding):
-        if binding.is_singleton:
-            injector = self._in_scope([Injector])
-            value = binding.provider(injector)
-            return self._scope.set(key, value)
+        if binding.scope_key is None:
+            return binding.provider(self)
         
         else:
-            return binding.provider(self)
+            injector = self._in_scope(binding.scope_key)
+            value = binding.provider(injector)
+            return self._scope.set(key, value)
     
-    def _in_scope(self, scope):
-        return Injector(self._bindings, self._scope.in_scope(scope))
+    def _in_scope(self, scope_keys):
+        scope_values = set(
+            (key, self.get(key))
+            for key in scope_keys
+        )
+        scope = self._scope.in_scope(scope_values | set([(SingletonScope, singleton_scope)]))
+        return Injector(self._bindings, scope)
     
     def _get_from_type(self, type_to_get):
         if hasattr(type_to_get.__init__, '_zuice'):
