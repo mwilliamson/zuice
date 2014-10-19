@@ -6,10 +6,12 @@ from .bindings import Bindings
 __all__ = ['Bindings', 'Injector', 'Base', 'dependency']
 
 class Injector(object):
-    def __init__(self, bindings, _parent_injector=None):
+    def __init__(self, bindings, _singletons=None):
         self._bindings = bindings.copy()
-        self._parent_injector = _parent_injector
-        self._singletons = {}
+        if _singletons is None:
+            _singletons = {}
+            
+        self._singletons = _singletons
     
     def get(self, key, instances=None):
         if instances:
@@ -19,13 +21,10 @@ class Injector(object):
             return self._get_by_key(key)
     
     def _extend_with_instances(self, instances):
-        bindings = Bindings()
+        bindings = self._bindings.copy()
         for key in instances:
             bindings.bind(key).to_instance(instances[key])
-        return self._extend_with_bindings(bindings)
-        
-    def _extend_with_bindings(self, bindings):
-        return Injector(bindings, self)
+        return Injector(bindings, self._singletons)
     
     def _get_by_key(self, key):
         if key == Injector:
@@ -36,9 +35,6 @@ class Injector(object):
             
         elif isinstance(key, type):
             return self._get_from_type(key)
-        
-        elif self._parent_injector is not None:
-            return self._parent_injector.get(key)
         
         else:
             raise NoSuchBindingException(key)

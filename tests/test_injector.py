@@ -224,6 +224,19 @@ def test_can_set_bindings_for_keys_in_call_to_get():
     injector = Injector(bindings)
     greeter = injector.get(Greeter, {Name: "Bob"})
     assert greeter.hello() == "Hello Bob"
+    
+
+def test_original_bindings_are_prefered_to_zero_arg_constructors():
+    class Unit(object):
+        pass
+    
+    unit = Unit()
+    
+    bindings = Bindings()
+    bindings.bind(Unit).to_instance(unit)
+    
+    injector = Injector(bindings)
+    assert injector.get(Unit, {zuice.key("a"): "a"}) is unit
 
 
 class TestLifetimes(object):
@@ -265,7 +278,6 @@ class TestLifetimes(object):
         injector = Injector(bindings)
         assert_equal(1, injector.get(counter))
         assert_equal(1, injector.get(counter))
-        
 
     
 def test_methods_decorated_with_init_decorator_are_run_after_injection():
