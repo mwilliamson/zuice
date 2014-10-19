@@ -36,6 +36,9 @@ class Injector(object):
         elif isinstance(key, type):
             return self._get_from_type(key)
         
+        elif isinstance(key, _Factory):
+            return lambda instances: self.get(key._key, instances)
+        
         else:
             raise NoSuchBindingException(key)
     
@@ -169,3 +172,15 @@ def _check_keyword_arguments_consumed(kwargs):
 def init(func):
     func._zuice_init = next(_param_counter)
     return func
+
+
+def factory(key):
+    return _Factory(key)
+
+
+class _Factory(object):
+    def __init__(self, key):
+        self._key = key
+    
+    def __repr__(self):
+        return "factory({0})".format(self._key)

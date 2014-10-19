@@ -226,6 +226,21 @@ def test_can_set_bindings_for_keys_in_call_to_get():
     assert greeter.hello() == "Hello Bob"
     
 
+def test_can_set_bindings_for_keys_in_call_to_injected_factory():
+    Name = zuice.key("Name")
+    
+    class Greeter(zuice.Base):
+        _name = zuice.dependency(Name)
+        
+        def hello(self):
+            return "Hello {0}".format(self._name)
+    
+    injector = Injector(Bindings())
+    factory = injector.get(zuice.factory(Greeter))
+    greeter = factory({Name: "Bob"})
+    assert greeter.hello() == "Hello Bob"
+    
+
 def test_original_bindings_are_prefered_to_zero_arg_constructors():
     class Unit(object):
         pass
