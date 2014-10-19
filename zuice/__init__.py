@@ -5,13 +5,42 @@ from .bindings import Bindings
 
 __all__ = ['Bindings', 'Injector', 'Base', 'dependency']
 
+
+class _Scope(object):
+    def __init__(self, active_scope, values=None):
+        if values is None:
+            values = {}
+        
+        self._active_scope = frozenset(active_scope)
+        self._values = values
+    
+    def __contains__(self, key):
+        return (key, self._active_scope) in self._values
+    
+    def get(self, key):
+        return self._values[(key, self._active_scope)]
+    
+    def enter(self, scope_key, instances):
+        new_scope = _Scope(self._active_scope & set([scope_key]), self._values)
+        for key in instances:
+            new_scope.set(key, instances[key])
+        return new_scope
+    
+    def set(self, key, value):
+        self._values[(key, self._active_scope)] = value
+        return value
+    
+    def in_scope(self, scope):
+        return _Scope(scope, self._values)
+
+
 class Injector(object):
-    def __init__(self, bindings, _singletons=None):
+    def __init__(self, bindings, _scope=None):
         self._bindings = bindings.copy()
-        if _singletons is None:
-            _singletons = {}
+        if _scope is None:
+            _scope = _Scope([Injector])
             
-        self._singletons = _singletons
+        self._scope = _scope
     
     def get(self, key, instances=None):
         if instances:
@@ -21,17 +50,23 @@ class Injector(object):
             return self._get_by_key(key)
     
     def _extend_with_instances(self, instances):
-        bindings = self._bindings.copy()
-        for key in instances:
-            bindings.bind(key).to_instance(instances[key])
-        return Injector(bindings, self._singletons)
+        #~ scoped_values = self._scoped_values.copy()
+        #~ # TODO: handle multiple keys
+        #~ key, = instances
+        #~ # TODO: throw proper exception
+        #~ assert key not in scoped_values
+        #~ scoped_values[key] = key, instances[key]
+        return Injector(self._bindings, self._scope.enter(key, instances))
     
     def _get_by_key(self, key):
         if key == Injector:
             return self
         
+        elif key in self._scope:
+            return self._scope.get(key)
+        
         elif key in self._bindings:
-            return self._get_from_binding(self._bindings[key])
+            return self._get_from_binding(key, self._bindings[key])
             
         elif isinstance(key, type):
             return self._get_from_type(key)
@@ -42,15 +77,17 @@ class Injector(object):
         else:
             raise NoSuchBindingException(key)
     
-    def _get_from_binding(self, binding):
+    def _get_from_binding(self, key, binding):
         if binding.is_singleton:
-            if binding not in self._singletons:
-                self._singletons[binding] = binding.provider(self)
-            
-            return self._singletons[binding]
+            injector = self._in_scope([Injector])
+            value = binding.provider(injector)
+            return self._scope.set(key, value)
+        
         else:
             return binding.provider(self)
-        
+    
+    def _in_scope(self, scope):
+        return Injector(self._bindings, self._scope.in_scope(scope))
     
     def _get_from_type(self, type_to_get):
         if hasattr(type_to_get.__init__, '_zuice'):

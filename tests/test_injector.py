@@ -232,6 +232,20 @@ def test_unscoped_injectables_are_available_in_any_scope():
     assert greeter.hello() == "Hello Bob"
     
 
+def test_scoped_injectables_cannot_depend_on_injectables_in_separate_scope():
+    Name = zuice.key("Name")
+    
+    class Greeter(zuice.Base):
+        _name = zuice.dependency(Name)
+    
+    bindings = Bindings()
+    bindings.bind(Greeter).singleton()
+    injector = Injector(bindings)
+    error = assert_raises(NoSuchBindingException, lambda: injector.get(Greeter, {Name: "Bob"}))
+    # TODO
+    #~ assert_equal(Name, error.key)
+    
+
 def test_can_set_bindings_for_keys_in_call_to_injected_factory():
     Name = zuice.key("Name")
     
