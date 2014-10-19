@@ -20,8 +20,8 @@ class _Scope(object):
     def get(self, key):
         return self._values[(key, self._active_scope)]
     
-    def enter(self, scope_key, instances):
-        new_scope = _Scope(self._active_scope & set([scope_key]), self._values)
+    def enter(self, scope_keys, instances):
+        new_scope = _Scope(self._active_scope & set(scope_keys), self._values)
         for key in instances:
             new_scope.set(key, instances[key])
         return new_scope
@@ -50,13 +50,8 @@ class Injector(object):
             return self._get_by_key(key)
     
     def _extend_with_instances(self, instances):
-        #~ scoped_values = self._scoped_values.copy()
-        #~ # TODO: handle multiple keys
-        #~ key, = instances
-        #~ # TODO: throw proper exception
-        #~ assert key not in scoped_values
-        #~ scoped_values[key] = key, instances[key]
-        return Injector(self._bindings, self._scope.enter(key, instances))
+        scope_keys = instances.keys()
+        return Injector(self._bindings, self._scope.enter(scope_keys, instances))
     
     def _get_by_key(self, key):
         if key == Injector:
