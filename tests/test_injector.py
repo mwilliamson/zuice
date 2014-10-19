@@ -332,6 +332,7 @@ class TestLifetimes(object):
         
         injector = Injector(bindings)
         assert_equal(["Bob"], injector.get(counter, {Name: "Bob"}))
+        assert_equal(["Bob"], injector.get(counter, {Name: "Bob"}))
         assert_equal(["Bob", "Jim"], injector.get(counter, {Name: "Jim"}))
 
     
