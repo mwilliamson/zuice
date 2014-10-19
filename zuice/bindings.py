@@ -38,12 +38,6 @@ class Bindings(object):
         return _ScopedBindings(self, [key])
 
 
-class SingletonScope(object):
-    pass
-
-singleton_scope = SingletonScope()
-
-
 class _ScopedBindings(object):
     def __init__(self, bindings, scope_key):
         self._bindings = bindings
@@ -82,7 +76,7 @@ class Binder(object):
     
     def singleton(self):
         current_provider = self._bindings.get(self._key)
-        self._bindings._force_bind(self._key, _Binding(current_provider.provider, [SingletonScope]))
+        self._bindings._force_bind(self._key, _Binding(current_provider.provider, []))
         return self
 
 

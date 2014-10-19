@@ -1,7 +1,7 @@
 import itertools
 
 import zuice.reflect
-from .bindings import Bindings, SingletonScope, singleton_scope
+from .bindings import Bindings
 
 __all__ = ['Bindings', 'Injector', 'Base', 'dependency']
 
@@ -38,7 +38,7 @@ class Injector(object):
     def __init__(self, bindings, _scope=None):
         self._bindings = bindings.copy()
         if _scope is None:
-            _scope = _Scope([(SingletonScope, singleton_scope)])
+            _scope = _Scope([])
             
         self._scope = _scope
     
@@ -85,7 +85,7 @@ class Injector(object):
             (key, self.get(key))
             for key in scope_keys
         )
-        scope = self._scope.in_scope(scope_values | set([(SingletonScope, singleton_scope)]))
+        scope = self._scope.in_scope(scope_values)
         return Injector(self._bindings, scope)
     
     def _get_from_type(self, type_to_get):
