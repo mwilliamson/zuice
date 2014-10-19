@@ -209,6 +209,12 @@ def test_injectable_injecting_manually_with_extra_members_raises_type_error():
     
 
 def test_can_set_bindings_for_keys_in_call_to_get():
+    Name = zuice.key("Name")
+    injector = Injector(Bindings())
+    assert_equal("Bob", injector.get(Name, {Name: "Bob"}))
+    
+
+def test_unscoped_injectables_are_available_in_any_scope():
     Greeting = zuice.key("Greeting")
     Name = zuice.key("Name")
     
