@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name='zuice',
-    version='0.3.0-pre4',
+    version='0.3.0-pre5',
     description='A dependency injection framework for Python',
     long_description=read("README.rst"),
     author='Michael Williamson',
