@@ -13,19 +13,14 @@ class _Scope(object):
         
         self._active_values = active_values
         self._active_key = frozenset(self._active_values.items())
+        self._active_scope_key = frozenset(self._active_values.keys())
         self._cached_values = cached_values
     
     def __contains__(self, key):
-        return (
-            key in self._active_values or
-            (key, self._active_key) in self._cached_values
-        )
+        return key in self._active_values
     
     def get(self, key):
-        if key in self._active_values:
-            return self._active_values[key]
-        else:
-            return self._cached_values[(key, self._active_key)]
+        return self._active_values[key]
     
     def enter(self, instances):
         active_values = self._active_values.copy()
@@ -33,9 +28,12 @@ class _Scope(object):
         new_scope = _Scope(active_values, self._cached_values)
         return new_scope
     
-    def cache_set(self, key, value):
-        self._cached_values[(key, self._active_key)] = value
-        return value
+    def cache_get(self, key, provide):
+        cache_key = (key, self._active_key)
+        if cache_key not in self._cached_values:
+            self._cached_values[cache_key] = provide()
+            
+        return self._cached_values[cache_key]
     
     def in_scope(self, scope_keys):
         active_values = dict(
@@ -85,11 +83,12 @@ class Injector(object):
     def _get_from_binding(self, key, binding):
         if binding.scope_key is None:
             return binding.provider(self)
-        
         else:
-            injector = self._in_scope(binding.scope_key)
-            value = binding.provider(injector)
-            return injector._scope.cache_set(key, value)
+            if self._scope._active_scope_key == frozenset(binding.scope_key):
+                return self._scope.cache_get(key, lambda: binding.provider(self))
+            else:
+                injector = self._in_scope(binding.scope_key)
+                return injector.get(key)
     
     def _in_scope(self, scope_keys):
         scope = self._scope.in_scope(scope_keys)

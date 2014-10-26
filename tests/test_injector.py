@@ -368,6 +368,20 @@ class TestLifetimes(object):
         
         assert_equal(1, injector.get(Counter, {"name": "Bob"}).x)
         assert_equal(1, injector.get(Counter).x)
+    
+    
+    def test_cached_singleton_is_available_from_non_singleton_scope(self):
+        x = [0]
+        class Counter(object):
+            def __init__(self):
+               self.x = x[0] = x[0] + 1
+        
+        bindings = Bindings()
+        bindings.bind(Counter).singleton()
+        injector = Injector(bindings)
+        
+        assert_equal(1, injector.get(Counter, {"name": "Bob"}).x)
+        assert_equal(1, injector.get(Counter, {"name": "Jim"}).x)
 
     
 def test_methods_decorated_with_init_decorator_are_run_after_injection():
