@@ -354,6 +354,20 @@ class TestLifetimes(object):
         
         injector = Injector(bindings)
         assert_equal(["Bob"], injector.get(counter, {Name: "Bob", Greeting: "hello"}))
+    
+    
+    def test_singleton_is_cached_in_singleton_scope_when_injector_is_not_in_singleton_scope(self):
+        x = [0]
+        class Counter(object):
+            def __init__(self):
+               self.x = x[0] = x[0] + 1
+        
+        bindings = Bindings()
+        bindings.bind(Counter).singleton()
+        injector = Injector(bindings)
+        
+        assert_equal(1, injector.get(Counter, {"name": "Bob"}).x)
+        assert_equal(1, injector.get(Counter).x)
 
     
 def test_methods_decorated_with_init_decorator_are_run_after_injection():

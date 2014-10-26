@@ -89,7 +89,7 @@ class Injector(object):
         else:
             injector = self._in_scope(binding.scope_key)
             value = binding.provider(injector)
-            return self._scope.cache_set(key, value)
+            return injector._scope.cache_set(key, value)
     
     def _in_scope(self, scope_keys):
         scope = self._scope.in_scope(scope_keys)
