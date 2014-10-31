@@ -18,11 +18,10 @@ So we could, for instance, find the price of 10 apples using
 We can use an :class:`~zuice.Injector` to construct a :class:`PriceCalculator`
 for us since its constructor takes no arguments::
 
-    from zuice import Injector
-    from zuice.bindings import Bindings
+    import zuice
 
-    bindings = Bindings()
-    injector = Injector(bindings)
+    bindings = zuice.Bindings()
+    injector = zuice.Injector(bindings)
     price_calculator = injector.get(PriceCalculator)
     
     price = price_calculator.price_of(apples, 10)
@@ -53,13 +52,12 @@ Binding instances
 The first solution is to manually construct an instance of :class:`PriceCalculator`,
 and bind this instance to the type::
 
-    from zuice import Injector
-    from zuice import Bindings
+    import zuice
 
     # Assume we've already constructed an instance of PriceCalculator as price_calculator
-    bindings = Bindings()
+    bindings = zuice.Bindings()
     bindings.bind(PriceCalculator).to_instance(price_calculator)
-    injector = Injector(bindings)
+    injector = zuice.Injector(bindings)
     
     injector.get(PriceCalculator) # This returns the same instance of PriceCalculator i.e. price_calculator
     
@@ -85,11 +83,10 @@ by inheriting from ``zuice.Base`` and using ``zuice.dependency``::
 We can now get an instance of :class:`PriceCalculator`,
 assuming that :class:`DatabasePriceFetcher` is already injectable::
 
-    from zuice import Injector
-    from zuice.bindings import Bindings
+    import zuice
 
-    bindings = Bindings()
-    injector = Injector(bindings)
+    bindings = zuice.Bindings()
+    injector = zuice.Injector(bindings)
     
     injector.get(PriceCalculator) # This returns a new instance of PriceCalculator
     
@@ -116,12 +113,11 @@ We then write :class:`PriceCalculator` as::
     
 Finally, to inject a :class:`PriceCalculator`::
 
-    from zuice import Injector
-    from zuice.bindings import Bindings
+    import zuice
 
-    bindings = Bindings()
+    bindings = zuice.Bindings()
     bindings.bind(PriceFetcher).to_type(DatabasePriceFetcher)
-    injector = Injector(bindings)
+    injector = zuice.Injector(bindings)
     price_calculator = injector.get(PriceCalculator)
     
     price = price_calculator.price_of(apples, 10)
